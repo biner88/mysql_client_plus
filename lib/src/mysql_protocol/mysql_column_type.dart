@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:tuple/tuple.dart';
-import 'package:mysql_client/exception.dart';
-import 'package:mysql_client/mysql_protocol_extension.dart';
+import 'package:mysql_client_plus/exception.dart';
+import 'package:mysql_client_plus/mysql_protocol_extension.dart';
 
 const mysqlColumnTypeDecimal = 0x00;
 const mysqlColumnTypeTiny = 0x01;

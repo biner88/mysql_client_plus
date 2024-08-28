@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:buffer/buffer.dart' show ByteDataWriter;
 import 'package:crypto/crypto.dart' as crypto;
-import 'package:mysql_client/mysql_protocol.dart';
-import 'package:mysql_client/exception.dart';
+import 'package:mysql_client_plus/mysql_protocol.dart';
+import 'package:mysql_client_plus/exception.dart';
 import 'package:tuple/tuple.dart' show Tuple2;
 
 const mysqlCapFlagClientLongPassword = 0x00000001;
@@ -134,10 +134,12 @@ class MySQLPacket {
     final type = byteData.getUint8(offset);
 
     if (type != 0xfe) {
-      throw MySQLProtocolException("Can not decode AuthSwitchResponse packet: type is not 0xfe");
+      throw MySQLProtocolException(
+          "Can not decode AuthSwitchResponse packet: type is not 0xfe");
     }
 
-    final payload = MySQLPacketAuthSwitchRequest.decode(Uint8List.sublistView(buffer, offset));
+    final payload = MySQLPacketAuthSwitchRequest.decode(
+        Uint8List.sublistView(buffer, offset));
 
     return MySQLPacket(
       sequenceID: sequenceNumber,
@@ -168,7 +170,8 @@ class MySQLPacket {
     } else if (type == 0xff) {
       payload = MySQLPacketError.decode(Uint8List.sublistView(buffer, offset));
     } else if (type == 0x01) {
-      payload = MySQLPacketExtraAuthData.decode(Uint8List.sublistView(buffer, offset));
+      payload = MySQLPacketExtraAuthData.decode(
+          Uint8List.sublistView(buffer, offset));
     } else {
       throw MySQLProtocolException("Unsupported generic packet: $buffer");
     }
@@ -203,7 +206,8 @@ class MySQLPacket {
         "COM_QUERY_RESPONSE of type 0xfb is not implemented",
       );
     } else {
-      payload = MySQLPacketColumnCount.decode(Uint8List.sublistView(buffer, offset));
+      payload =
+          MySQLPacketColumnCount.decode(Uint8List.sublistView(buffer, offset));
     }
 
     return MySQLPacket(
@@ -329,7 +333,9 @@ class MySQLPacket {
       return true;
     }
 
-    return _payload is MySQLPacketOK && _payload.header == 0xfe && payloadLength < 9;
+    return _payload is MySQLPacketOK &&
+        _payload.header == 0xfe &&
+        payloadLength < 9;
   }
 
   Uint8List encode() {
@@ -360,7 +366,8 @@ Uint8List xor(List<int> aList, List<int> bList) {
   final b = Uint8List.fromList(bList);
 
   if (a.lengthInBytes == 0 || b.lengthInBytes == 0) {
-    throw ArgumentError.value("lengthInBytes of Uint8List arguments must be > 0");
+    throw ArgumentError.value(
+        "lengthInBytes of Uint8List arguments must be > 0");
   }
 
   bool aIsBigger = a.lengthInBytes > b.lengthInBytes;

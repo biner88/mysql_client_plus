@@ -1,4 +1,4 @@
-import 'package:mysql_client/mysql_client.dart';
+import 'package:mysql_client_plus/mysql_client_plus.dart';
 
 Future<void> main(List<String> arguments) async {
   print("Connecting to mysql server...");

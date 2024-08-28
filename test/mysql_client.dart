@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:mysql_client/exception.dart';
-import 'package:mysql_client/mysql_client.dart';
+import 'package:mysql_client_plus/exception.dart';
+import 'package:mysql_client_plus/mysql_client_plus.dart';
 import 'package:test/test.dart';
 
 void testMysqlClient(

@@ -1,3 +1,13 @@
+## 0.0.30
+
+* Rename mysql_client to mysql_client_plus
+
+## 0.0.29
+
+* Add Support empty password
+
+## 0.0.28
+
 ## 0.0.28
 
 * Add support for unix socket on pool connection
