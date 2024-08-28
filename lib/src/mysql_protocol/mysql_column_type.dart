@@ -281,12 +281,12 @@ Tuple2<String, int> parseBinaryColumnData(
       }
 
       final result = StringBuffer();
-      result.write(year.toString() + '-');
-      result.write(month.toString().padLeft(2, '0') + '-');
-      result.write(day.toString().padLeft(2, '0') + ' ');
-      result.write(hour.toString().padLeft(2, '0') + ':');
-      result.write(minute.toString().padLeft(2, '0') + ':');
-      result.write(second.toString().padLeft(2, '0') + '.');
+      result.write('$year-');
+      result.write('${month.toString().padLeft(2, '0')}-');
+      result.write('${day.toString().padLeft(2, '0')} ');
+      result.write('${hour.toString().padLeft(2, '0')}:');
+      result.write('${minute.toString().padLeft(2, '0')}:');
+      result.write('${second.toString().padLeft(2, '0')}.');
       result.write(microSecond.toString());
 
       return Tuple2(result.toString(), startOffset - initialOffset);
@@ -336,9 +336,9 @@ Tuple2<String, int> parseBinaryColumnData(
       if (isNegative) {
         result.write("-");
       }
-      result.write(hours.toString().padLeft(2, '0') + ':');
-      result.write(minutes.toString().padLeft(2, '0') + ':');
-      result.write(seconds.toString().padLeft(2, '0') + '.');
+      result.write('${hours.toString().padLeft(2, '0')}:');
+      result.write('${minutes.toString().padLeft(2, '0')}:');
+      result.write('${seconds.toString().padLeft(2, '0')}.');
       result.write(microSecond.toString());
 
       return Tuple2(result.toString(), startOffset - initialOffset);

@@ -11,14 +11,15 @@ platforms:
   windows:
 
 environment:
-  sdk: '>=2.16.0 <3.0.0'
+  sdk: '>=2.16.0 <4.0.0'
 
 
 dev_dependencies:
   hex: ^0.2.0
-  lints: ^1.0.0
-  test: ^1.20.1
+  lints: ^4.0.0
+  test: ^1.25.8
 dependencies: 
-  buffer: ^1.1.1
-  crypto: ^3.0.1
-  tuple: ^2.0.0
+  buffer: ^1.2.3
+  crypto: ^3.0.5
+  tuple: ^2.0.2
+  logger: ^2.4.0

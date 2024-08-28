@@ -3,7 +3,7 @@ import 'package:mysql_client/mysql_client.dart';
 
 /// Class to create and manage pool of database connections
 class MySQLConnectionPool {
-  final String host;
+  final dynamic host;
   final int port;
   final String userName;
   final String _password;
@@ -44,8 +44,7 @@ class MySQLConnectionPool {
   /// Active + Idle connections
   int get allConnectionsQty => activeConnectionsQty + idleConnectionsQty;
 
-  List<MySQLConnection> get _allConnections =>
-      _idleConnections + _activeConnections;
+  List<MySQLConnection> get _allConnections => _idleConnections + _activeConnections;
 
   /// See [MySQLConnection.execute]
   Future<IResultSet> execute(
@@ -90,8 +89,7 @@ class MySQLConnectionPool {
   ///
   /// After callback completes, connection is returned into pool as idle connection
   /// This function returns callback result
-  FutureOr<T> withConnection<T>(
-      FutureOr<T> Function(MySQLConnection conn) callback) async {
+  FutureOr<T> withConnection<T>(FutureOr<T> Function(MySQLConnection conn) callback) async {
     final conn = await _getFreeConnection();
     final result = await callback(conn);
     _releaseConnection(conn);
@@ -99,8 +97,7 @@ class MySQLConnectionPool {
   }
 
   /// See [MySQLConnection.transactional]
-  Future<T> transactional<T>(
-      FutureOr<T> Function(MySQLConnection conn) callback) async {
+  Future<T> transactional<T>(FutureOr<T> Function(MySQLConnection conn) callback) async {
     return withConnection((conn) {
       return conn.transactional(callback);
     });
