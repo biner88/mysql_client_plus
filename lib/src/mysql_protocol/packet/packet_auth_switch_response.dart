@@ -15,10 +15,12 @@ class MySQLPacketAuthSwitchResponse extends MySQLPacketPayload {
     required Uint8List challenge,
   }) {
     assert(challenge.length == 20);
+    if (password == '') {
+      return MySQLPacketAuthSwitchResponse(authData: Uint8List(0));
+    }
     final passwordBytes = utf8.encode(password);
 
-    final authData =
-        xor(sha1(passwordBytes), sha1(challenge + sha1(sha1(passwordBytes))));
+    final authData = xor(sha1(passwordBytes), sha1(challenge + sha1(sha1(passwordBytes))));
 
     return MySQLPacketAuthSwitchResponse(
       authData: authData,
