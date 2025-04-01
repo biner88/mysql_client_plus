@@ -8,8 +8,6 @@
 
 ## 0.0.28
 
-## 0.0.28
-
 * Add support for unix socket on pool connection
 
 ## 0.0.27
