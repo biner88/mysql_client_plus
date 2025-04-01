@@ -8,6 +8,8 @@ Tested with:
  * MySQL Percona Server 5.7 and 8 versions
  * MariaDB 10, 11 version
 
+This pub is forked from [mysql_client](https://pub.dev/packages/mysql_client) .
+
 ### Roadmap
 
 * [x] Auth with mysql_native_password

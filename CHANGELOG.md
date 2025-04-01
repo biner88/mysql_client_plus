@@ -1,3 +1,7 @@
+## 0.0.31
+
+* Add github repository address
+
 ## 0.0.30
 
 * Rename mysql_client to mysql_client_plus
