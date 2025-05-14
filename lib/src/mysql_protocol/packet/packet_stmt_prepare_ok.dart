@@ -2,11 +2,11 @@ import 'dart:typed_data';
 import 'package:mysql_client_plus/mysql_protocol.dart';
 
 class MySQLPacketStmtPrepareOK extends MySQLPacketPayload {
-  int header;
-  int stmtID;
-  int numOfCols;
-  int numOfParams;
-  int numOfWarnings;
+  final int header;
+  final int stmtID;
+  final int numOfCols;
+  final int numOfParams;
+  final int numOfWarnings;
 
   MySQLPacketStmtPrepareOK({
     required this.header,
@@ -49,6 +49,6 @@ class MySQLPacketStmtPrepareOK extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError();
+    throw UnimplementedError("Encode not implementado for MySQLPacketStmtPrepareOK");
   }
 }

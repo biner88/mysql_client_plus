@@ -2,8 +2,8 @@ import 'dart:typed_data';
 import 'package:mysql_client_plus/mysql_protocol.dart';
 
 class MySQLPacketEOF extends MySQLPacketPayload {
-  int header;
-  int statusFlags;
+  final int header;
+  final int statusFlags;
 
   MySQLPacketEOF({
     required this.header,
@@ -28,6 +28,6 @@ class MySQLPacketEOF extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError();
+    throw UnimplementedError("Encode not implementado for MySQLPacketEOF");
   }
 }

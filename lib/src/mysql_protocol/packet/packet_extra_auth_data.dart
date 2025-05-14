@@ -25,6 +25,6 @@ class MySQLPacketExtraAuthData extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError();
+    throw UnimplementedError("Encode not implemented for MySQLPacketAuthSwitchRequest");
   }
 }

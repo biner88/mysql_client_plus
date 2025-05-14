@@ -4,15 +4,15 @@ import 'package:mysql_client_plus/mysql_protocol.dart';
 import 'package:mysql_client_plus/mysql_protocol_extension.dart';
 
 class MySQLPacketInitialHandshake extends MySQLPacketPayload {
-  int protocolVersion;
-  String serverVersion;
-  int connectionID;
-  Uint8List authPluginDataPart1;
-  int capabilityFlags;
-  int charset;
-  Uint8List statusFlags;
-  Uint8List? authPluginDataPart2;
-  String? authPluginName;
+  final int protocolVersion;
+  final String serverVersion;
+  final int connectionID;
+  final Uint8List authPluginDataPart1;
+  final int capabilityFlags;
+  final int charset;
+  final Uint8List statusFlags;
+  final Uint8List? authPluginDataPart2;
+  final String? authPluginName;
 
   MySQLPacketInitialHandshake({
     required this.protocolVersion,
@@ -43,8 +43,7 @@ class MySQLPacketInitialHandshake extends MySQLPacketPayload {
     offset += 4;
 
     // auth-plugin-data-part-1
-    final authPluginDataPart1 =
-        Uint8List.sublistView(buffer, offset, offset + 8);
+    final authPluginDataPart1 = Uint8List.sublistView(buffer, offset, offset + 8);
     offset += 9; // 8 + filler;
 
     // capability flags (lower 2 bytes)
@@ -84,8 +83,7 @@ class MySQLPacketInitialHandshake extends MySQLPacketPayload {
     if (capabilityFlags & mysqlCapFlagClientSecureConnection != 0) {
       int length = max(13, authPluginDataLength - 8);
 
-      authPluginDataPart2 =
-          Uint8List.sublistView(buffer, offset, offset + length);
+      authPluginDataPart2 = Uint8List.sublistView(buffer, offset, offset + length);
 
       offset += length;
     }
@@ -111,7 +109,7 @@ class MySQLPacketInitialHandshake extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError();
+    throw UnimplementedError("Encode not implementado for MySQLPacketInitialHandshake");
   }
 
   @override

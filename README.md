@@ -8,8 +8,6 @@ Tested with:
  * MySQL Percona Server 5.7 and 8 versions
  * MariaDB 10, 11 version
 
-This pub is forked from [mysql_client](https://pub.dev/packages/mysql_client) .
-
 ### Roadmap
 
 * [x] Auth with mysql_native_password
@@ -22,8 +20,12 @@ This pub is forked from [mysql_client](https://pub.dev/packages/mysql_client) .
 * [x] Auth using caching_sha2_password (default since MySQL 8)
 * [x] Iterating large result sets
 * [x] Typed data access
-* [ ] Send data in binary form when using prepared stmts (do not convert all into strings)
+* [x] Send data in binary form when using prepared stmts (do not convert all into strings)
 * [x] Multiple resul sets
+* [x] Support Empty password
+* [x] SSL certificates support && blob support [@insinfo](https://github.com/insinfo/mysql.dart)
+* [x] Support Stored procedure callback
+* [ ] Auth using sha256_password
 
 ### Usage
 
@@ -37,6 +39,11 @@ final pool = MySQLConnectionPool(
   password: 'your_password',
   maxConnections: 10,
   databaseName: 'your_database_name', // optional,
+  secure: true, 
+  //collation: 'utf8_general_ci',
+  //timeoutMs: 10000,
+  //securityContext: context,
+  //onBadCertificate: (certificate) => true,
 );
 ```
 
@@ -49,6 +56,10 @@ final conn = await MySQLConnection.createConnection(
   userName: "your_user",
   password: "your_password",
   databaseName: "your_database_name", // optional
+  //collation: 'utf8_general_ci',
+  //timeoutMs: 10000,
+  //securityContext: context,
+  //onBadCertificate: (certificate) => true,
 );
 
 // actually connect to database

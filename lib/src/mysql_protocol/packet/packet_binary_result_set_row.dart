@@ -3,7 +3,7 @@ import 'package:mysql_client_plus/mysql_protocol.dart';
 import 'package:mysql_client_plus/exception.dart';
 
 class MySQLBinaryResultSetRowPacket extends MySQLPacketPayload {
-  List<String?> values;
+  List<dynamic> values;
 
   MySQLBinaryResultSetRowPacket({
     required this.values,
@@ -26,7 +26,7 @@ class MySQLBinaryResultSetRowPacket extends MySQLPacketPayload {
       );
     }
 
-    List<String?> values = [];
+    List<dynamic> values = [];
 
     // parse null bitmap
     int nullBitmapSize = ((colDefs.length + 9) / 8).floor();
@@ -69,6 +69,6 @@ class MySQLBinaryResultSetRowPacket extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError();
+    throw UnimplementedError("Encode not implemented for MySQLBinaryResultSetRowPacket");
   }
 }

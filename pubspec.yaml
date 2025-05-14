@@ -1,6 +1,6 @@
 name: mysql_client_plus
 description: Native MySQL client written in Dart. Tested with MySQL Percona Server (5.7, 8), MariaDB (10, 11). Supports TLS.
-version: 0.0.31
+version: 0.0.32
 homepage: https://github.com/biner88/mysql_client_plus
 repository: https://github.com/biner88/mysql_client_plus
 issue_tracker: https://github.com/biner88/mysql_client_plus/issues
@@ -12,13 +12,13 @@ platforms:
   windows:
 
 environment:
-  sdk: '>=2.16.0 <4.0.0'
+  sdk: '>=2.16.0'
 
 
 dev_dependencies:
   hex: ^0.2.0
-  lints: ^4.0.0
-  test: ^1.25.15
+  lints: ^5.1.1
+  test: ^1.26.0
 dependencies: 
   buffer: ^1.2.3
   crypto: ^3.0.6

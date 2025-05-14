@@ -1,3 +1,8 @@
+## 0.0.32
+
+* Add support Stored procedure callback [[Test]](test/stored_procedure_test.dart) [#16](https://github.com/biner88/mysql_utils/issues/16)
+* Add support json type, blob type, SSL certificates [[Test]](test/mysql_features_test.dart) [@insinfo](https://github.com/insinfo/mysql.dart)
+
 ## 0.0.31
 
 * Add github repository address
@@ -8,7 +13,7 @@
 
 ## 0.0.29
 
-* Add Support empty password
+* Add support empty password
 
 ## 0.0.28
 

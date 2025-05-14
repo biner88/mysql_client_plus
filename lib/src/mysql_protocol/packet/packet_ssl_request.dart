@@ -14,7 +14,7 @@ class MySQLPacketSSLRequest extends MySQLPacketPayload {
   int capabilityFlags;
   int maxPacketSize;
   int characterSet;
-  bool connectWithDB;
+  final bool connectWithDB;
 
   MySQLPacketSSLRequest._({
     required this.capabilityFlags,

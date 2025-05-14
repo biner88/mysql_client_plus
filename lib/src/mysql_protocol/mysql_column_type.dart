@@ -23,6 +23,7 @@ const mysqlColumnTypeBit = 0x10;
 const mysqlColumnTypeTimestamp2 = 0x11;
 const mysqlColumnTypeDateTime2 = 0x12;
 const mysqlColumnTypeTime2 = 0x13;
+const mysqlColumnTypeJson = 0xf5;
 const mysqlColumnTypeNewDecimal = 0xf6;
 const mysqlColumnTypeEnum = 0xf7;
 const mysqlColumnTypeSet = 0xf8;
@@ -56,25 +57,30 @@ class MySQLColumnType {
   static const dateTimeType = MySQLColumnType._(mysqlColumnTypeDateTime);
   static const yearType = MySQLColumnType._(mysqlColumnTypeYear);
   static const newDateType = MySQLColumnType._(mysqlColumnTypeNewDate);
-  static const vatChartType = MySQLColumnType._(mysqlColumnTypeVarChar);
+  static const varChartType = MySQLColumnType._(mysqlColumnTypeVarChar);
   static const bitType = MySQLColumnType._(mysqlColumnTypeBit);
   static const timestamp2Type = MySQLColumnType._(mysqlColumnTypeTimestamp2);
   static const dateTime2Type = MySQLColumnType._(mysqlColumnTypeDateTime2);
   static const time2Type = MySQLColumnType._(mysqlColumnTypeTime2);
+  static const jsonType = MySQLColumnType._(mysqlColumnTypeJson);
   static const newDecimalType = MySQLColumnType._(mysqlColumnTypeNewDecimal);
   static const enumType = MySQLColumnType._(mysqlColumnTypeEnum);
   static const setType = MySQLColumnType._(mysqlColumnTypeSet);
   static const tinyBlobType = MySQLColumnType._(mysqlColumnTypeTinyBlob);
   static const mediumBlobType = MySQLColumnType._(mysqlColumnTypeMediumBlob);
   static const longBlobType = MySQLColumnType._(mysqlColumnTypeLongBlob);
-  static const blocType = MySQLColumnType._(mysqlColumnTypeBlob);
+  static const blobType = MySQLColumnType._(mysqlColumnTypeBlob);
   static const varStringType = MySQLColumnType._(mysqlColumnTypeVarString);
   static const stringType = MySQLColumnType._(mysqlColumnTypeString);
   static const geometryType = MySQLColumnType._(mysqlColumnTypeGeometry);
 
-  T? convertStringValueToProvidedType<T>(String? value, [int? columnLength]) {
+  T? convertStringValueToProvidedType<T>(dynamic value, [int? columnLength]) {
     if (value == null) {
       return null;
+    }
+
+    if (T == Uint8List && value is Uint8List) {
+      return value as T;
     }
 
     if (T == String || T == dynamic) {
@@ -86,15 +92,13 @@ class MySQLColumnType {
         return int.parse(value) > 0 as T;
       } else {
         throw MySQLProtocolException(
-          "Can not convert MySQL type $_value to requested type bool",
+          "Cannot convert MySQL type $_value to requested type bool",
         );
       }
     }
 
-    // convert to int
     if (T == int) {
       switch (_value) {
-        // types convertible to dart int
         case mysqlColumnTypeTiny:
         case mysqlColumnTypeShort:
         case mysqlColumnTypeLong:
@@ -104,7 +108,7 @@ class MySQLColumnType {
           return int.parse(value) as T;
         default:
           throw MySQLProtocolException(
-            "Can not convert MySQL type $_value to requested type int",
+            "Cannot convert MySQL type $_value to requested type int",
           );
       }
     }
@@ -121,7 +125,7 @@ class MySQLColumnType {
           return double.parse(value) as T;
         default:
           throw MySQLProtocolException(
-            "Can not convert MySQL type $_value to requested type double",
+            "Cannot convert MySQL type $_value to requested type double",
           );
       }
     }
@@ -138,7 +142,7 @@ class MySQLColumnType {
           return num.parse(value) as T;
         default:
           throw MySQLProtocolException(
-            "Can not convert MySQL type $_value to requested type num",
+            "Cannot convert MySQL type $_value to requested type num",
           );
       }
     }
@@ -153,27 +157,31 @@ class MySQLColumnType {
           return DateTime.parse(value) as T;
         default:
           throw MySQLProtocolException(
-            "Can not convert MySQL type $_value to requested type DateTime",
+            "Cannot convert MySQL type $_value to requested type DateTime",
           );
       }
     }
 
     throw MySQLProtocolException(
-      "Can not convert MySQL type $_value to requested type ${T.runtimeType}",
+      "Cannot convert MySQL type $_value to requested type ${T.runtimeType}",
     );
   }
 
   Type getBestMatchDartType(int columnLength) {
     switch (_value) {
+      case mysqlColumnTypeJson:
+        return String;
       case mysqlColumnTypeString:
       case mysqlColumnTypeVarString:
       case mysqlColumnTypeVarChar:
       case mysqlColumnTypeEnum:
       case mysqlColumnTypeSet:
+        return String;
       case mysqlColumnTypeLongBlob:
       case mysqlColumnTypeMediumBlob:
       case mysqlColumnTypeBlob:
       case mysqlColumnTypeTinyBlob:
+        return Uint8List;
       case mysqlColumnTypeGeometry:
       case mysqlColumnTypeBit:
       case mysqlColumnTypeDecimal:
@@ -206,7 +214,7 @@ class MySQLColumnType {
   }
 }
 
-Tuple2<String, int> parseBinaryColumnData(
+Tuple2<dynamic, int> parseBinaryColumnData(
   int columnType,
   ByteData data,
   Uint8List buffer,
@@ -214,148 +222,178 @@ Tuple2<String, int> parseBinaryColumnData(
 ) {
   switch (columnType) {
     case mysqlColumnTypeTiny:
-      final value = data.getInt8(startOffset);
-      return Tuple2(value.toString(), 1);
+      {
+        final value = data.getInt8(startOffset);
+        return Tuple2(value.toString(), 1);
+      }
+
     case mysqlColumnTypeShort:
-      final value = data.getInt16(startOffset, Endian.little);
-      return Tuple2(value.toString(), 2);
+      {
+        final value = data.getInt16(startOffset, Endian.little);
+        return Tuple2(value.toString(), 2);
+      }
+
     case mysqlColumnTypeLong:
     case mysqlColumnTypeInt24:
-      final value = data.getInt32(startOffset, Endian.little);
-      return Tuple2(value.toString(), 4);
+      {
+        final value = data.getInt32(startOffset, Endian.little);
+        return Tuple2(value.toString(), 4);
+      }
+
     case mysqlColumnTypeLongLong:
-      final value = data.getInt64(startOffset, Endian.little);
-      return Tuple2(value.toString(), 8);
+      {
+        final value = data.getInt64(startOffset, Endian.little);
+        return Tuple2(value.toString(), 8);
+      }
+
     case mysqlColumnTypeFloat:
-      final value = data.getFloat32(startOffset, Endian.little);
-      return Tuple2(value.toString(), 4);
+      {
+        final value = data.getFloat32(startOffset, Endian.little);
+        return Tuple2(value.toString(), 4);
+      }
+
     case mysqlColumnTypeDouble:
-      final value = data.getFloat64(startOffset, Endian.little);
-      return Tuple2(value.toString(), 8);
+      {
+        final value = data.getFloat64(startOffset, Endian.little);
+        return Tuple2(value.toString(), 8);
+      }
+
     case mysqlColumnTypeDate:
     case mysqlColumnTypeDateTime:
     case mysqlColumnTypeTimestamp:
-      final initialOffset = startOffset;
+      {
+        final initialOffset = startOffset;
+        final numOfBytes = data.getUint8(startOffset);
+        startOffset += 1;
 
-      // read number of bytes (0, 4, 7, 11)
-      final numOfBytes = data.getUint8(startOffset);
-      startOffset += 1;
+        // Quando numOfBytes == 0, MySQL envia datas/timestamps '0000-00-00 00:00:00'
+        if (numOfBytes == 0) {
+          return Tuple2("0000-00-00 00:00:00", 1);
+        }
 
-      if (numOfBytes == 0) {
-        return Tuple2("0000-00-00 00:00:00", 1);
+        var year = 0, month = 0, day = 0;
+        var hour = 0, minute = 0, second = 0, microSecond = 0;
+
+        if (numOfBytes >= 4) {
+          year = data.getUint16(startOffset, Endian.little);
+          startOffset += 2;
+          month = data.getUint8(startOffset);
+          startOffset += 1;
+          day = data.getUint8(startOffset);
+          startOffset += 1;
+        }
+        if (numOfBytes >= 7) {
+          hour = data.getUint8(startOffset);
+          startOffset += 1;
+          minute = data.getUint8(startOffset);
+          startOffset += 1;
+          second = data.getUint8(startOffset);
+          startOffset += 1;
+        }
+        if (numOfBytes >= 11) {
+          microSecond = data.getUint32(startOffset, Endian.little);
+          startOffset += 4;
+        }
+
+        final result = StringBuffer()
+          ..write('$year-')
+          ..write('${month.toString().padLeft(2, '0')}-')
+          ..write('${day.toString().padLeft(2, '0')} ')
+          ..write('${hour.toString().padLeft(2, '0')}:')
+          ..write('${minute.toString().padLeft(2, '0')}:')
+          ..write(second.toString().padLeft(2, '0'));
+
+        if (numOfBytes >= 11) {
+          result.write('.$microSecond');
+        }
+
+        final consumed = startOffset - initialOffset;
+        return Tuple2(result.toString(), consumed);
       }
 
-      var year = 0;
-      var month = 0;
-      var day = 0;
-      var hour = 0;
-      var minute = 0;
-      var second = 0;
-      var microSecond = 0;
-
-      if (numOfBytes >= 4) {
-        year = data.getUint16(startOffset, Endian.little);
-        startOffset += 2;
-
-        month = data.getUint8(startOffset);
-        startOffset += 1;
-
-        day = data.getUint8(startOffset);
-        startOffset += 1;
-      }
-
-      if (numOfBytes >= 7) {
-        hour = data.getUint8(startOffset);
-        startOffset += 1;
-
-        minute = data.getUint8(startOffset);
-        startOffset += 1;
-
-        second = data.getUint8(startOffset);
-        startOffset += 1;
-      }
-
-      if (numOfBytes >= 11) {
-        microSecond = data.getUint32(startOffset, Endian.little);
-        startOffset += 4;
-      }
-
-      final result = StringBuffer();
-      result.write('$year-');
-      result.write('${month.toString().padLeft(2, '0')}-');
-      result.write('${day.toString().padLeft(2, '0')} ');
-      result.write('${hour.toString().padLeft(2, '0')}:');
-      result.write('${minute.toString().padLeft(2, '0')}:');
-      result.write('${second.toString().padLeft(2, '0')}.');
-      result.write(microSecond.toString());
-
-      return Tuple2(result.toString(), startOffset - initialOffset);
     case mysqlColumnTypeTime:
-      final initialOffset = startOffset;
-
-      // read number of bytes (0, 8, 12)
-      final numOfBytes = data.getUint8(startOffset);
-      startOffset += 1;
-
-      if (numOfBytes == 0) {
-        return Tuple2("00:00:00", 1);
-      }
-
-      var isNegative = false;
-      var days = 0;
-      var hours = 0;
-      var minutes = 0;
-      var seconds = 0;
-      var microSecond = 0;
-
-      if (numOfBytes >= 8) {
-        isNegative = data.getUint8(startOffset) > 0;
+    case mysqlColumnTypeTime2:
+      {
+        final initialOffset = startOffset;
+        final numOfBytes = data.getUint8(startOffset);
         startOffset += 1;
 
-        days = data.getUint32(startOffset, Endian.little);
-        startOffset += 4;
+        if (numOfBytes == 0) {
+          return Tuple2("00:00:00", 1);
+        }
 
-        hours = data.getUint8(startOffset);
-        startOffset += 1;
+        var isNegative = false;
+        var days = 0, hours = 0, minutes = 0, seconds = 0, microSecond = 0;
 
-        minutes = data.getUint8(startOffset);
-        startOffset += 1;
+        if (numOfBytes >= 8) {
+          isNegative = data.getUint8(startOffset) > 0;
+          startOffset += 1;
+          days = data.getUint32(startOffset, Endian.little);
+          startOffset += 4;
+          hours = data.getUint8(startOffset);
+          startOffset += 1;
+          minutes = data.getUint8(startOffset);
+          startOffset += 1;
+          seconds = data.getUint8(startOffset);
+          startOffset += 1;
+        }
 
-        seconds = data.getUint8(startOffset);
-        startOffset += 1;
+        if (numOfBytes >= 12) {
+          microSecond = data.getUint32(startOffset, Endian.little);
+          startOffset += 4;
+        }
+
+        hours += days * 24;
+        final timeResult = StringBuffer();
+        if (isNegative) {
+          timeResult.write("-");
+        }
+        timeResult.write('${hours.toString().padLeft(2, '0')}:');
+        timeResult.write('${minutes.toString().padLeft(2, '0')}:');
+        timeResult.write(seconds.toString().padLeft(2, '0'));
+
+        if (numOfBytes >= 12) {
+          timeResult.write('.${microSecond.toString()}');
+        }
+
+        final consumed = startOffset - initialOffset;
+        return Tuple2(timeResult.toString(), consumed);
       }
 
-      if (numOfBytes >= 12) {
-        microSecond = data.getUint32(startOffset, Endian.little);
-        startOffset += 4;
-      }
-
-      hours += days * 24;
-
-      final result = StringBuffer();
-      if (isNegative) {
-        result.write("-");
-      }
-      result.write('${hours.toString().padLeft(2, '0')}:');
-      result.write('${minutes.toString().padLeft(2, '0')}:');
-      result.write('${seconds.toString().padLeft(2, '0')}.');
-      result.write(microSecond.toString());
-
-      return Tuple2(result.toString(), startOffset - initialOffset);
     case mysqlColumnTypeString:
     case mysqlColumnTypeVarString:
     case mysqlColumnTypeVarChar:
     case mysqlColumnTypeEnum:
     case mysqlColumnTypeSet:
+      {
+        final result = buffer.getUtf8LengthEncodedString(startOffset);
+        return Tuple2(result.item1, result.item2);
+      }
+
+    case mysqlColumnTypeDecimal:
+    case mysqlColumnTypeNewDecimal:
+      {
+        final lengthEncoded = buffer.getLengthEncodedBytes(startOffset);
+        final strValue = String.fromCharCodes(lengthEncoded.item1);
+        return Tuple2(strValue, lengthEncoded.item2);
+      }
+
     case mysqlColumnTypeLongBlob:
     case mysqlColumnTypeMediumBlob:
     case mysqlColumnTypeBlob:
     case mysqlColumnTypeTinyBlob:
     case mysqlColumnTypeGeometry:
     case mysqlColumnTypeBit:
-    case mysqlColumnTypeDecimal:
-    case mysqlColumnTypeNewDecimal:
-      return buffer.getUtf8LengthEncodedString(startOffset);
+      {
+        final lengthEncoded = buffer.getLengthEncodedBytes(startOffset);
+        return Tuple2(lengthEncoded.item1, lengthEncoded.item2);
+      }
+
+    case mysqlColumnTypeYear:
+      {
+        final yearValue = data.getUint16(startOffset, Endian.little);
+        return Tuple2(yearValue.toString(), 2);
+      }
   }
 
   throw MySQLProtocolException(

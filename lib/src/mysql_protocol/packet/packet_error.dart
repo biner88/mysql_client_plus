@@ -3,9 +3,9 @@ import 'package:mysql_client_plus/mysql_protocol.dart';
 import 'package:mysql_client_plus/mysql_protocol_extension.dart';
 
 class MySQLPacketError extends MySQLPacketPayload {
-  int header;
-  int errorCode;
-  String errorMessage;
+  final int header;
+  final int errorCode;
+  final String errorMessage;
 
   MySQLPacketError({
     required this.header,
@@ -39,6 +39,6 @@ class MySQLPacketError extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError();
+    throw UnimplementedError("Encode not implementado for MySQLPacketError");
   }
 }

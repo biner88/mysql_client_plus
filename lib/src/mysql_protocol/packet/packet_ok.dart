@@ -3,9 +3,9 @@ import 'package:mysql_client_plus/mysql_protocol.dart';
 import 'package:mysql_client_plus/mysql_protocol_extension.dart';
 
 class MySQLPacketOK extends MySQLPacketPayload {
-  int header;
-  BigInt affectedRows;
-  BigInt lastInsertID;
+  final int header;
+  final BigInt affectedRows;
+  final BigInt lastInsertID;
 
   MySQLPacketOK({
     required this.header,
@@ -35,6 +35,6 @@ class MySQLPacketOK extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError();
+    throw UnimplementedError("Encode not implementado for MySQLPacketOK");
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:mysql_client_plus/mysql_client_plus.dart';
 
 /// Class to create and manage pool of database connections
@@ -10,6 +11,8 @@ class MySQLConnectionPool {
   final int maxConnections;
   final String? databaseName;
   final bool secure;
+  final SecurityContext? securityContext;
+  final bool Function(X509Certificate certificate)? onBadCertificate;
   final String collation;
   final int timeoutMs;
 
@@ -31,6 +34,8 @@ class MySQLConnectionPool {
     this.secure = true,
     this.collation = 'utf8_general_ci',
     this.timeoutMs = 10000,
+    this.securityContext,
+    this.onBadCertificate,
   }) : _password = password;
 
   /// Number of active connections in this pool
@@ -44,8 +49,7 @@ class MySQLConnectionPool {
   /// Active + Idle connections
   int get allConnectionsQty => activeConnectionsQty + idleConnectionsQty;
 
-  List<MySQLConnection> get _allConnections =>
-      _idleConnections + _activeConnections;
+  List<MySQLConnection> get _allConnections => _idleConnections + _activeConnections;
 
   /// See [MySQLConnection.execute]
   Future<IResultSet> execute(
@@ -90,8 +94,7 @@ class MySQLConnectionPool {
   ///
   /// After callback completes, connection is returned into pool as idle connection
   /// This function returns callback result
-  FutureOr<T> withConnection<T>(
-      FutureOr<T> Function(MySQLConnection conn) callback) async {
+  FutureOr<T> withConnection<T>(FutureOr<T> Function(MySQLConnection conn) callback) async {
     final conn = await _getFreeConnection();
     final result = await callback(conn);
     _releaseConnection(conn);
@@ -99,8 +102,7 @@ class MySQLConnectionPool {
   }
 
   /// See [MySQLConnection.transactional]
-  Future<T> transactional<T>(
-      FutureOr<T> Function(MySQLConnection conn) callback) async {
+  Future<T> transactional<T>(FutureOr<T> Function(MySQLConnection conn) callback) async {
     return withConnection((conn) {
       return conn.transactional(callback);
     });
@@ -124,6 +126,8 @@ class MySQLConnectionPool {
         databaseName: databaseName,
         secure: secure,
         collation: collation,
+        securityContext: securityContext,
+        onBadCertificate: onBadCertificate,
       );
 
       await conn.connect(timeoutMs: timeoutMs);

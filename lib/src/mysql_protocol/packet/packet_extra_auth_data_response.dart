@@ -3,7 +3,7 @@ import 'package:buffer/buffer.dart';
 import 'package:mysql_client_plus/mysql_protocol.dart';
 
 class MySQLPacketExtraAuthDataResponse extends MySQLPacketPayload {
-  Uint8List data;
+  final Uint8List data;
 
   MySQLPacketExtraAuthDataResponse({
     required this.data,

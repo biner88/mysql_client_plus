@@ -2,9 +2,9 @@ import 'dart:typed_data';
 import 'package:mysql_client_plus/mysql_protocol.dart';
 
 class MySQLPacketResultSet extends MySQLPacketPayload {
-  BigInt columnCount;
-  List<MySQLColumnDefinitionPacket> columns;
-  List<MySQLResultSetRowPacket> rows;
+  final BigInt columnCount;
+  final List<MySQLColumnDefinitionPacket> columns;
+  final List<MySQLResultSetRowPacket> rows;
 
   MySQLPacketResultSet({
     required this.columnCount,
@@ -14,6 +14,6 @@ class MySQLPacketResultSet extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError();
+    throw UnimplementedError("Encode not implementado for MySQLPacketResultSet");
   }
 }

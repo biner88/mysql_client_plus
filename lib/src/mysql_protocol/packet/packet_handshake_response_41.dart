@@ -4,12 +4,8 @@ import 'package:buffer/buffer.dart';
 import 'package:mysql_client_plus/mysql_protocol.dart';
 import 'package:mysql_client_plus/mysql_protocol_extension.dart';
 
-const _supportedCapabitilies = mysqlCapFlagClientProtocol41 |
-    mysqlCapFlagClientSecureConnection |
-    mysqlCapFlagClientPluginAuth |
-    mysqlCapFlagClientPluginAuthLenEncClientData |
-    mysqlCapFlagClientMultiStatements |
-    mysqlCapFlagClientMultiResults;
+const _supportedCapabitilies =
+    mysqlCapFlagClientProtocol41 | mysqlCapFlagClientSecureConnection | mysqlCapFlagClientPluginAuth | mysqlCapFlagClientPluginAuthLenEncClientData | mysqlCapFlagClientMultiStatements | mysqlCapFlagClientMultiResults;
 
 class MySQLPacketHandshakeResponse41 extends MySQLPacketPayload {
   int capabilityFlags;
@@ -35,11 +31,7 @@ class MySQLPacketHandshakeResponse41 extends MySQLPacketPayload {
     required String password,
     required MySQLPacketInitialHandshake initialHandshakePayload,
   }) {
-    assert(initialHandshakePayload.authPluginDataPart2 != null);
-    assert(initialHandshakePayload.authPluginName != null);
-
-    final challenge = initialHandshakePayload.authPluginDataPart1 +
-        initialHandshakePayload.authPluginDataPart2!.sublist(0, 12);
+    final challenge = initialHandshakePayload.authPluginDataPart1 + initialHandshakePayload.authPluginDataPart2!.sublist(0, 12);
 
     assert(challenge.length == 20);
 
@@ -65,8 +57,7 @@ class MySQLPacketHandshakeResponse41 extends MySQLPacketPayload {
     required String password,
     required MySQLPacketInitialHandshake initialHandshakePayload,
   }) {
-    final challenge = initialHandshakePayload.authPluginDataPart1 +
-        initialHandshakePayload.authPluginDataPart2!.sublist(0, 12);
+    final challenge = initialHandshakePayload.authPluginDataPart1 + initialHandshakePayload.authPluginDataPart2!.sublist(0, 12);
 
     assert(challenge.length == 20);
 
@@ -107,8 +98,7 @@ class MySQLPacketHandshakeResponse41 extends MySQLPacketPayload {
       buffer.write(authResponse);
     }
 
-    if (database != null &&
-        capabilityFlags & mysqlCapFlagClientConnectWithDB != 0) {
+    if (database != null && capabilityFlags & mysqlCapFlagClientConnectWithDB != 0) {
       buffer.write(utf8.encode(database!));
       buffer.writeUint8(0);
     }

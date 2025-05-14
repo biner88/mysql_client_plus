@@ -9,7 +9,7 @@ Future<void> main(List<String> arguments) async {
     port: 3306,
     userName: "your_user",
     password: "your_password",
-    databaseName: "your_database_name", // optional
+    databaseName: "testdb", // optional
   );
 
   await conn.connect();
