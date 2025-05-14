@@ -25,7 +25,7 @@ Tested with:
 * [x] Support Empty password
 * [x] SSL certificates support && blob support [@insinfo](https://github.com/insinfo/mysql.dart)
 * [x] Support Stored procedure callback
-* [ ] Auth using sha256_password
+* [x] Auth using sha256_password
 
 ### Usage
 

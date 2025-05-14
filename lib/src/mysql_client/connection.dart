@@ -206,6 +206,18 @@ class MySQLConnection {
 
             _socket.add(responsePacket.encode());
             return;
+          case 'sha256_password':
+            if (_secure) {
+              final response = MySQLPacket(
+                sequenceID: authSwitchPacket.sequenceID + 1,
+                payload: MySQLPacketAuthSwitchResponse(authData: Uint8List.fromList(utf8.encode('$_password\u0000'))),
+                payloadLength: 0,
+              );
+              _socket.add(response.encode());
+            } else {
+              _socket.add(Uint8List.fromList([0x01]));
+            }
+            return;
           default:
             throw MySQLClientException("Unsupported auth plugin name: ${payload.authPluginName}");
         }
@@ -255,7 +267,39 @@ class MySQLConnection {
           throw MySQLClientException("Unsupported extra auth data: $data");
         }
       }
+      // support sha256_password
+      if (packet.payload is MySQLPacketAuthMoreData) {
+        if (_activeAuthPluginName != 'sha256_password') {
+          throw MySQLClientException("Unexpected plugin for AuthMoreData: $_activeAuthPluginName");
+        }
 
+        final payload = packet.payload as MySQLPacketAuthMoreData;
+        final subType = payload.pluginData[0];
+
+        if (subType == 0x01) {
+          // The server requires a public key request
+          _socket.add(Uint8List.fromList([0x01]));
+          return;
+        } else if (subType == 0x04) {
+          // The server sent the RSA public key
+          final publicKeyPem = utf8.decode(payload.pluginData.sublist(1));
+          final encrypted = MySQLPacketAuthMoreData.encryptPasswordWithRSA(
+            password: _password,
+            publicKeyPem: publicKeyPem,
+          );
+
+          final response = MySQLPacket(
+            sequenceID: packet.sequenceID + 1,
+            payload: MySQLPacketAuthSwitchResponse(authData: encrypted),
+            payloadLength: 0,
+          );
+
+          _socket.add(response.encode());
+          return;
+        } else {
+          throw MySQLClientException("Unknown sha256_password AuthMoreData subtype: $subType");
+        }
+      }
       if (packet.isErrorPacket()) {
         final errorPayload = packet.payload as MySQLPacketError;
         throw MySQLServerException(errorPayload.errorMessage, errorPayload.errorCode);
@@ -318,8 +362,6 @@ class MySQLConnection {
   }
 
   Future<void> _processInitialHandshake(Uint8List data) async {
-    // logger.d("Processing initial handshake");
-    // First packet can be error packet
     if (MySQLPacket.detectPacketType(data) == MySQLGenericPacketType.error) {
       final packet = MySQLPacket.decodeGenericPacket(data);
       final payload = packet.payload as MySQLPacketError;
@@ -332,7 +374,7 @@ class MySQLConnection {
     if (payload is! MySQLPacketInitialHandshake) {
       throw MySQLClientException("Expected MySQLPacketInitialHandshake packet");
     }
-    // logger.d(payload);
+
     _serverCapabilities = payload.capabilityFlags;
 
     if (_secure && (_serverCapabilities & mysqlCapFlagClientSsl == 0)) {
@@ -342,9 +384,7 @@ class MySQLConnection {
     }
 
     if (_secure) {
-      // it secure = true, initiate ssl connection
       Future<void> initiateSSL() async {
-        // logger.d("Initiating SSL connection");
         final responsePayload = MySQLPacketSSLRequest.createDefault(
           initialHandshakePayload: payload,
           connectWithDB: _databaseName != null,
@@ -365,10 +405,7 @@ class MySQLConnection {
           context: _securityContext,
           onBadCertificate: _onBadCertificate ?? ((cert) => true),
         );
-        // logger.d("SSL connection established");
-        // switch socket
         _socket = secureSocket;
-
         _socketSubscription = _socket.listen((data) {
           for (final chunk in _splitPackets(data)) {
             _processSocketData(chunk).onError((error, stackTrace) => _lastError = error);
@@ -384,9 +421,10 @@ class MySQLConnection {
     }
 
     final authPluginName = payload.authPluginName;
-    // logger.d("Auth plugin name is: ${payload.authPluginName}");
     _activeAuthPluginName = authPluginName;
-    // logger.d("Auth plugin name is: $authPluginName");
+
+    final sequenceId = _secure ? 2 : 1;
+
     switch (authPluginName) {
       case 'mysql_native_password':
         final responsePayload = MySQLPacketHandshakeResponse41.createWithNativePassword(
@@ -394,38 +432,49 @@ class MySQLConnection {
           password: _password,
           initialHandshakePayload: payload,
         );
-
         responsePayload.database = _databaseName;
-
         final responsePacket = MySQLPacket(
           payload: responsePayload,
-          sequenceID: _secure ? 2 : 1,
+          sequenceID: sequenceId,
           payloadLength: 0,
         );
-
         _state = _MySQLConnectionState.initialHandshakeResponseSend;
         _socket.add(responsePacket.encode());
-        // logger.d("Native password response send");
         break;
+
       case 'caching_sha2_password':
         final responsePayload = MySQLPacketHandshakeResponse41.createWithCachingSha2Password(
           username: _username,
           password: _password,
           initialHandshakePayload: payload,
         );
-
         responsePayload.database = _databaseName;
-
         final responsePacket = MySQLPacket(
           payload: responsePayload,
-          sequenceID: _secure ? 2 : 1,
+          sequenceID: sequenceId,
           payloadLength: 0,
         );
-
         _state = _MySQLConnectionState.initialHandshakeResponseSend;
         _socket.add(responsePacket.encode());
-        // logger.d("Caching sha2 password response send");
         break;
+
+      case 'sha256_password':
+        final responsePayload = MySQLPacketHandshakeResponse41.createWithSha256Password(
+          username: _username,
+          password: _password,
+          initialHandshakePayload: payload,
+          secure: _secure,
+        );
+        responsePayload.database = _databaseName;
+        final responsePacket = MySQLPacket(
+          payload: responsePayload,
+          sequenceID: sequenceId,
+          payloadLength: 0,
+        );
+        _state = _MySQLConnectionState.initialHandshakeResponseSend;
+        _socket.add(responsePacket.encode());
+        break;
+
       default:
         throw MySQLClientException("Unsupported auth plugin name: $authPluginName");
     }

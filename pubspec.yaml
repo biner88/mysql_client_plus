@@ -23,3 +23,4 @@ dependencies:
   buffer: ^1.2.3
   crypto: ^3.0.6
   tuple: ^2.0.2
+  pointycastle: ^4.0.0

@@ -26,6 +26,7 @@ class MySQLPacketHandshakeResponse41 extends MySQLPacketPayload {
     this.database,
   });
 
+  /// MYSQL_NATIVE_PASSWORD
   factory MySQLPacketHandshakeResponse41.createWithNativePassword({
     required String username,
     required String password,
@@ -52,6 +53,7 @@ class MySQLPacketHandshakeResponse41 extends MySQLPacketPayload {
     );
   }
 
+  /// CACHING_SHA2_PASSWORD
   factory MySQLPacketHandshakeResponse41.createWithCachingSha2Password({
     required String username,
     required String password,
@@ -78,6 +80,34 @@ class MySQLPacketHandshakeResponse41 extends MySQLPacketPayload {
     );
   }
 
+  /// SHA256_PASSWORD
+  factory MySQLPacketHandshakeResponse41.createWithSha256Password({
+    required String username,
+    required String password,
+    required MySQLPacketInitialHandshake initialHandshakePayload,
+    required bool secure,
+  }) {
+    final challenge = initialHandshakePayload.authPluginDataPart1 + initialHandshakePayload.authPluginDataPart2!.sublist(0, 12);
+
+    assert(challenge.length == 20);
+
+    Uint8List authData;
+
+    if (secure) {
+      authData = Uint8List.fromList(utf8.encode('$password\u0000'));
+    } else {
+      authData = Uint8List(0);
+    }
+
+    return MySQLPacketHandshakeResponse41(
+      capabilityFlags: _supportedCapabitilies,
+      maxPacketSize: 50 * 1024 * 1024,
+      authPluginName: 'sha256_password',
+      characterSet: initialHandshakePayload.charset,
+      authResponse: authData,
+      username: username,
+    );
+  }
   @override
   Uint8List encode() {
     final buffer = ByteDataWriter(endian: Endian.little);
