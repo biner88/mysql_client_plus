@@ -269,8 +269,14 @@ class MySQLConnection {
       }
       // support sha256_password
       if (packet.payload is MySQLPacketAuthMoreData) {
+        assert(_activeAuthPluginName != null);
+
         if (_activeAuthPluginName != 'sha256_password') {
           throw MySQLClientException("Unexpected plugin for AuthMoreData: $_activeAuthPluginName");
+        }
+
+        if (_secure == false) {
+          throw MySQLClientException("Auth plugin sha256_password is supported only with secure connections. Pass secure: true or use another auth method");
         }
 
         final payload = packet.payload as MySQLPacketAuthMoreData;
