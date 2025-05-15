@@ -1,6 +1,6 @@
 ## 0.0.32
 
-* Add support Stored procedure callback [[Test]](test/stored_procedure_test.dart) [#16](https://github.com/biner88/mysql_utils/issues/16)
+* Add support Stored procedure callback [[Test]](test/stored_procedure_test.dart)
 * Add support json type, blob type, SSL certificates [[Test]](test/mysql_features_test.dart) [@insinfo](https://github.com/insinfo/mysql.dart)
 * Add Auth using sha256_password
 
