@@ -33,42 +33,42 @@ const mysqlCapFlagClientDeprecateEOF = 0x01000000;
 
 const mysqlServerFlagMoreResultsExists = 0x0008;
 
-/// Enum que representa o tipo genérico de pacote MySQL.
+/// Enum that represents or generic type of MySQL packet.
 enum MySQLGenericPacketType {
-  /// Pacote OK (header 0x00).
+  /// Package OK (header 0x00).
   ok,
 
-  /// Pacote de erro (header 0xff).
+  /// Error package (header 0xff).
   error,
 
-  /// Pacote EOF (header 0xfe).
+  /// EOF package (header 0xfe).
   eof,
 
-  /// Qualquer outro tipo de pacote não identificado.
+  /// Any other type of package is not identified.
   other
 }
 
-/// Interface que define um payload de pacote MySQL.
+/// Interface that defines a MySQL package payload.
 ///
-/// Cada payload deve ser capaz de se [encode]ar em um [Uint8List] para envio.
+/// Each payload must be able to be [encoded] into a [Uint8List] for delivery.
 abstract class MySQLPacketPayload {
   Uint8List encode();
 }
 
-/// Representa um pacote MySQL completo, contendo cabeçalho (4 bytes) e payload.
+/// Represents a complete MySQL package, containing head (4 bytes) and payload.
 ///
-/// O cabeçalho do pacote consiste em:
-/// - 3 bytes para o tamanho do payload.
-/// - 1 byte para sequenceID.
-/// O [payload] contém o conteúdo real do pacote.
+/// The package head consists of:
+/// - 3 bytes for payload size.
+/// - 1 byte for sequenceID.
+/// O [payload] contains the real content of the package.
 class MySQLPacket {
-  /// Sequence ID do pacote, usado para garantir a ordem dos pacotes.
+  /// Sequence ID of the package, used to guarantee the order of two packages.
   int sequenceID;
 
-  /// Tamanho do payload (excluindo os 4 bytes do cabeçalho).
+  /// Payload size (excluding the 4 bytes of the head).
   int payloadLength;
 
-  /// Conteúdo do pacote.
+  /// Package contents.
   MySQLPacketPayload payload;
 
   MySQLPacket({
@@ -91,10 +91,10 @@ class MySQLPacket {
     return payloadLength + 4;
   }
 
-  /// Decodifica o cabeçalho do pacote, retornando (payloadLength, sequenceID).
+  /// Decode the package head, returning (payloadLength, sequenceID).
   static Tuple2<int, int> decodePacketHeader(Uint8List buffer) {
     final byteData = ByteData.sublistView(buffer);
-    // Lê os 3 primeiros bytes para payloadLength.
+    // The first 3 bytes are for payloadLength.
     var header = ByteData(4)
       ..setUint8(0, buffer[0])
       ..setUint8(1, buffer[1])
@@ -102,18 +102,18 @@ class MySQLPacket {
       ..setUint8(3, 0);
     final payloadLength = header.getUint32(0, Endian.little);
 
-    // O 4º byte é o sequenceNumber.
+    // The 4th byte is the sequenceNumber.
     final sequenceNumber = byteData.getUint8(3);
     return Tuple2(payloadLength, sequenceNumber);
   }
 
-  /// Detecta o tipo genérico do pacote com base no primeiro byte do payload.
+  /// Detects the generic type of the package based on the first byte of the payload.
   ///
-  /// Observando o payload:
-  /// - 0x00 -> OK (se payloadLength >= 7),
-  /// - 0xfe -> EOF (se payloadLength < 9),
+  /// Observing or payload:
+  /// - 0x00 -> OK (payloadLength >= 7),
+  /// - 0xfe -> EOF (payloadLength < 9),
   /// - 0xff -> Error,
-  /// - Caso contrário -> other.
+  /// - Otherwise -> other.
   static MySQLGenericPacketType detectPacketType(Uint8List buffer) {
     final byteData = ByteData.sublistView(buffer);
     final header = decodePacketHeader(buffer);
@@ -130,7 +130,7 @@ class MySQLPacket {
     }
   }
 
-  /// Decodifica um pacote de handshake inicial [MySQLPacketInitialHandshake].
+  /// Decodes an initial handshake packet [MySQLPacketInitialHandshake].
   factory MySQLPacket.decodeInitialHandshake(Uint8List buffer) {
     final header = decodePacketHeader(buffer);
     final offset = 4;
@@ -144,7 +144,7 @@ class MySQLPacket {
     );
   }
 
-  /// Decodifica um pacote Auth Switch Request [MySQLPacketAuthSwitchRequest].
+  /// Decodes an Auth Switch Request packet [MySQLPacketAuthSwitchRequest].
   factory MySQLPacket.decodeAuthSwitchRequestPacket(Uint8List buffer) {
     final byteData = ByteData.sublistView(buffer);
     final header = decodePacketHeader(buffer);
@@ -152,8 +152,7 @@ class MySQLPacket {
     final type = byteData.getUint8(offset);
 
     if (type != 0xfe) {
-      throw MySQLProtocolException(
-          "Cannot decode AuthSwitchResponse packet: type is not 0xfe");
+      throw MySQLProtocolException("Cannot decode AuthSwitchResponse packet: type is not 0xfe");
     }
 
     final payload = MySQLPacketAuthSwitchRequest.decode(
@@ -166,7 +165,7 @@ class MySQLPacket {
     );
   }
 
-  /// Decodifica um pacote genérico, podendo ser OK, EOF, ERROR, etc.
+  /// Decodes a generic packet, which could be OK, EOF, ERROR, etc.
   factory MySQLPacket.decodeGenericPacket(Uint8List buffer) {
     final header = decodePacketHeader(buffer);
     final offset = 4;
@@ -203,7 +202,7 @@ class MySQLPacket {
     );
   }
 
-  /// Decodifica um pacote que contém a contagem de colunas [MySQLPacketColumnCount].
+  /// Decode a packet containing the column contagem [MySQLPacketColumnCount].
   factory MySQLPacket.decodeColumnCountPacket(Uint8List buffer) {
     final header = decodePacketHeader(buffer);
     final offset = 4;
@@ -236,7 +235,7 @@ class MySQLPacket {
     );
   }
 
-  /// Decodifica um pacote de definição de coluna [MySQLColumnDefinitionPacket].
+  /// Decode a column definition packet [MySQLColumnDefinitionPacket].
   factory MySQLPacket.decodeColumnDefPacket(Uint8List buffer) {
     final header = decodePacketHeader(buffer);
     final offset = 4;
@@ -250,7 +249,7 @@ class MySQLPacket {
     );
   }
 
-  /// Decodifica uma linha de ResultSet em formato textual [MySQLResultSetRowPacket].
+  /// Decode a ResultSet line into textual format [MySQLResultSetRowPacket].
   factory MySQLPacket.decodeResultSetRowPacket(
     Uint8List buffer,
     List<MySQLColumnDefinitionPacket> colDefs,
@@ -268,7 +267,7 @@ class MySQLPacket {
     );
   }
 
-  /// Decodifica uma linha de ResultSet em formato binário [MySQLBinaryResultSetRowPacket].
+  /// Decode a ResultSet line into binary format [MySQLBinaryResultSetRowPacket].
   factory MySQLPacket.decodeBinaryResultSetRowPacket(
     Uint8List buffer,
     List<MySQLColumnDefinitionPacket> colDefs,
@@ -286,7 +285,7 @@ class MySQLPacket {
     );
   }
 
-  /// Decodifica a resposta ao COM_STMT_PREPARE [MySQLPacketStmtPrepareOK] ou error.
+  /// Decode response to COM_STMT_PREPARE [MySQLPacketStmtPrepareOK] or error.
   factory MySQLPacket.decodeCommPrepareStmtResponsePacket(Uint8List buffer) {
     final header = decodePacketHeader(buffer);
     final offset = 4;
@@ -315,32 +314,29 @@ class MySQLPacket {
     );
   }
 
-  /// Retorna verdadeiro se o payload for um pacote OK.
+  /// Returns the truth of the payload for a package OK.
   bool isOkPacket() => payload is MySQLPacketOK;
 
-  /// Retorna verdadeiro se o payload for um pacote de erro.
+  /// Returns the truth of the payload for an error packet.
   bool isErrorPacket() => payload is MySQLPacketError;
 
-  /// Retorna verdadeiro se o payload for um pacote EOF.
+  /// Returns the truth of the payload for an EOF package.
   bool isEOFPacket() {
     if (payload is MySQLPacketEOF) {
       return true;
     }
-    // Alguns servidores enviam OK com header 0xfe e payloadLength < 9 como EOF
-    if (payload is MySQLPacketOK &&
-        payloadLength < 9 &&
-        (payload as MySQLPacketOK).header == 0xfe) {
+    // Some servers send OK with header 0xfe and payloadLength < 9 as EOF
+    if (payload is MySQLPacketOK && payloadLength < 9 && (payload as MySQLPacketOK).header == 0xfe) {
       return true;
     }
     return false;
   }
 
-  /// Codifica o pacote (cabeçalho + payload) em um [Uint8List] para envio ao servidor.
+  /// Encode the package (head + payload) in a [Uint8List] for sending to the server.
   Uint8List encode() {
     final payloadData = payload.encode();
-
-    // Prepara 4 bytes para o cabeçalho:
-    // 3 bytes para length, 1 para sequenceID.
+    // Prepare 4 bytes for the head:
+    // 3 bytes for length, 1 for sequenceID.
     final header = ByteData(4);
     header.setUint8(0, payloadData.lengthInBytes & 0xFF);
     header.setUint8(1, (payloadData.lengthInBytes >> 8) & 0xFF);
@@ -354,20 +350,20 @@ class MySQLPacket {
   }
 }
 
-/// Calcula o hash SHA1 dos dados [data].
+/// Calculate or SHA1 hash two data [data].
 List<int> sha1(List<int> data) {
   return crypto.sha1.convert(data).bytes;
 }
 
-/// Calcula o hash SHA256 dos dados [data].
+/// Calculate or SHA256 hash two dice [data].
 List<int> sha256(List<int> data) {
   return crypto.sha256.convert(data).bytes;
 }
 
-/// Realiza a operação XOR entre dois arrays de bytes [aList] e [bList].
+/// Performs an XOR operation between two byte arrays [aList] and [bList].
 ///
-/// Se um array for menor, os bytes faltantes são considerados 0.
-/// Retorna um [Uint8List] com o resultado do XOR byte a byte.
+/// If an array is smaller, the missing bytes are considered 0.
+/// Returns um [Uint8List] as the result of XOR byte by byte.
 Uint8List xor(List<int> aList, List<int> bList) {
   final a = Uint8List.fromList(aList);
   final b = Uint8List.fromList(bList);
