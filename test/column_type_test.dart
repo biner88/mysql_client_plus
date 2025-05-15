@@ -7,7 +7,8 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeDecimal);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<String>('10.00');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<String>('10.00');
       result = sqlType.convertStringValueToProvidedType<String>('-10.00');
       expect(result, '-10.00');
       result = sqlType.convertStringValueToProvidedType<String>('0');
@@ -191,7 +192,8 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeFloat);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<double>('10.00');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<double>('10.00');
       expect(result, 10.00);
       result = sqlType.convertStringValueToProvidedType<double>('-10.00');
       expect(result, -10.00);
@@ -220,7 +222,8 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeDouble);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<double>('10.00');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<double>('10.00');
       expect(result, 10.00);
       result = sqlType.convertStringValueToProvidedType<double>('-10.00');
       expect(result, -10.00);
@@ -249,7 +252,8 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeTimestamp);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<String>('123451234');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<String>('123451234');
       expect(result, '123451234');
 
       expect(
@@ -276,7 +280,8 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeDate);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<String>('2022-01-02');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<String>('2022-01-02');
       expect(result, '2022-01-02');
 
       expect(
@@ -303,7 +308,8 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeDate);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<String>('02:00:34');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<String>('02:00:34');
       expect(result, '02:00:34');
 
       expect(
@@ -330,26 +336,32 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeDate);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<String>('2022-01-05 02:00:34');
+      dynamic result = sqlType
+          .convertStringValueToProvidedType<String>('2022-01-05 02:00:34');
       expect(result, '2022-01-05 02:00:34');
 
-      dynamic resultAsDate = sqlType.convertStringValueToProvidedType<DateTime>('2022-01-05 02:00:34');
+      dynamic resultAsDate = sqlType
+          .convertStringValueToProvidedType<DateTime>('2022-01-05 02:00:34');
       expect(resultAsDate, DateTime.parse('2022-01-05 02:00:34'));
 
       expect(
-        () => sqlType.convertStringValueToProvidedType<int>('2022-01-05 02:00:34'),
+        () => sqlType
+            .convertStringValueToProvidedType<int>('2022-01-05 02:00:34'),
         throwsException,
       );
       expect(
-        () => sqlType.convertStringValueToProvidedType<double>('2022-01-05 02:00:34'),
+        () => sqlType
+            .convertStringValueToProvidedType<double>('2022-01-05 02:00:34'),
         throwsException,
       );
       expect(
-        () => sqlType.convertStringValueToProvidedType<num>('2022-01-05 02:00:34'),
+        () => sqlType
+            .convertStringValueToProvidedType<num>('2022-01-05 02:00:34'),
         throwsException,
       );
       expect(
-        () => sqlType.convertStringValueToProvidedType<bool>('2022-01-05 02:00:34'),
+        () => sqlType
+            .convertStringValueToProvidedType<bool>('2022-01-05 02:00:34'),
         throwsException,
       );
     },
@@ -385,10 +397,12 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeVarChar);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<String>('Some text');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<String>('Some text');
       expect(result, 'Some text');
 
-      result = sqlType.convertStringValueToProvidedType<String>('Какой-то текст');
+      result =
+          sqlType.convertStringValueToProvidedType<String>('Какой-то текст');
       expect(result, 'Какой-то текст');
 
       expect(
@@ -415,10 +429,12 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeString);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<String>('Some text');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<String>('Some text');
       expect(result, 'Some text');
 
-      result = sqlType.convertStringValueToProvidedType<String>('Какой-то текст');
+      result =
+          sqlType.convertStringValueToProvidedType<String>('Какой-то текст');
       expect(result, 'Какой-то текст');
 
       expect(
@@ -445,10 +461,12 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeVarString);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<String>('Some text');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<String>('Some text');
       expect(result, 'Some text');
 
-      result = sqlType.convertStringValueToProvidedType<String>('Какой-то текст');
+      result =
+          sqlType.convertStringValueToProvidedType<String>('Какой-то текст');
       expect(result, 'Какой-то текст');
 
       expect(
@@ -475,7 +493,8 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeEnum);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<String>('process');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<String>('process');
       expect(result, 'process');
 
       expect(
@@ -502,7 +521,8 @@ void main() {
     () {
       final sqlType = MySQLColumnType.create(mysqlColumnTypeSet);
 
-      dynamic result = sqlType.convertStringValueToProvidedType<String>('process');
+      dynamic result =
+          sqlType.convertStringValueToProvidedType<String>('process');
       expect(result, 'process');
 
       expect(

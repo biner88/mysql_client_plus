@@ -194,7 +194,8 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
       case mysqlColumnTypeNewDecimal:
         {
           // Se o parâmetro for Uint8List, manda-o como binário; caso contrário, converte para string UTF-8
-          final encodedData = (param is Uint8List) ? param : utf8.encode(param.toString());
+          final encodedData =
+              (param is Uint8List) ? param : utf8.encode(param.toString());
 
           // Primeiro escreve o tamanho (length-encoded)
           buffer.writeVariableEncInt(encodedData.length);
@@ -224,7 +225,13 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
     final microsecond = dateTime.microsecond;
 
     // Caso todos os valores sejam zero, escreve 0 (sem dados de data/hora).
-    if (year == 0 && month == 0 && day == 0 && hour == 0 && minute == 0 && second == 0 && microsecond == 0) {
+    if (year == 0 &&
+        month == 0 &&
+        day == 0 &&
+        hour == 0 &&
+        minute == 0 &&
+        second == 0 &&
+        microsecond == 0) {
       buffer.writeUint8(0);
       return;
     }

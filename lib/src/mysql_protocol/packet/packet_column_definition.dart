@@ -87,6 +87,7 @@ class MySQLColumnDefinitionPacket extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError("Encode not implementado for MySQLColumnDefinitionPacket");
+    throw UnimplementedError(
+        "Encode not implementado for MySQLColumnDefinitionPacket");
   }
 }

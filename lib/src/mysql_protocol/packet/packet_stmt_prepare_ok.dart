@@ -49,6 +49,7 @@ class MySQLPacketStmtPrepareOK extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError("Encode not implementado for MySQLPacketStmtPrepareOK");
+    throw UnimplementedError(
+        "Encode not implementado for MySQLPacketStmtPrepareOK");
   }
 }

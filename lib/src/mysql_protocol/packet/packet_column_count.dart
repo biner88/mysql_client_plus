@@ -21,6 +21,7 @@ class MySQLPacketColumnCount extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError("Encode not implementado for MySQLPacketColumnCount");
+    throw UnimplementedError(
+        "Encode not implementado for MySQLPacketColumnCount");
   }
 }

@@ -69,6 +69,7 @@ class MySQLBinaryResultSetRowPacket extends MySQLPacketPayload {
 
   @override
   Uint8List encode() {
-    throw UnimplementedError("Encode not implemented for MySQLBinaryResultSetRowPacket");
+    throw UnimplementedError(
+        "Encode not implemented for MySQLBinaryResultSetRowPacket");
   }
 }

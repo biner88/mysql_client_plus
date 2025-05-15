@@ -6,7 +6,15 @@ import 'dart:typed_data';
 import 'package:mysql_client_plus/mysql_protocol.dart';
 import 'package:mysql_client_plus/exception.dart';
 
-enum _MySQLConnectionState { fresh, waitInitialHandshake, initialHandshakeResponseSend, connectionEstablished, waitingCommandResponse, quitCommandSend, closed }
+enum _MySQLConnectionState {
+  fresh,
+  waitInitialHandshake,
+  initialHandshakeResponseSend,
+  connectionEstablished,
+  waitingCommandResponse,
+  quitCommandSend,
+  closed
+}
 
 /// Main class to interact with MySQL database
 ///
@@ -127,7 +135,8 @@ class MySQLConnection {
 
     _socketSubscription = _socket.listen((data) {
       for (final chunk in _splitPackets(data)) {
-        _processSocketData(chunk).onError((error, stackTrace) => _lastError = error);
+        _processSocketData(chunk)
+            .onError((error, stackTrace) => _lastError = error);
       }
     });
 
@@ -186,15 +195,18 @@ class MySQLConnection {
     if (_state == _MySQLConnectionState.initialHandshakeResponseSend) {
       // check for auth switch request
       try {
-        final authSwitchPacket = MySQLPacket.decodeAuthSwitchRequestPacket(data);
+        final authSwitchPacket =
+            MySQLPacket.decodeAuthSwitchRequestPacket(data);
 
-        final payload = authSwitchPacket.payload as MySQLPacketAuthSwitchRequest;
+        final payload =
+            authSwitchPacket.payload as MySQLPacketAuthSwitchRequest;
         // logger.d("Processing AuthSwitchRequestPacket");
         _activeAuthPluginName = payload.authPluginName;
 
         switch (payload.authPluginName) {
           case 'mysql_native_password':
-            final responsePayload = MySQLPacketAuthSwitchResponse.createWithNativePassword(
+            final responsePayload =
+                MySQLPacketAuthSwitchResponse.createWithNativePassword(
               password: _password,
               challenge: payload.authPluginData.sublist(0, 20),
             );
@@ -210,7 +222,9 @@ class MySQLConnection {
             if (_secure) {
               final response = MySQLPacket(
                 sequenceID: authSwitchPacket.sequenceID + 1,
-                payload: MySQLPacketAuthSwitchResponse(authData: Uint8List.fromList(utf8.encode('$_password\u0000'))),
+                payload: MySQLPacketAuthSwitchResponse(
+                    authData:
+                        Uint8List.fromList(utf8.encode('$_password\u0000'))),
                 payloadLength: 0,
               );
               _socket.add(response.encode());
@@ -219,7 +233,8 @@ class MySQLConnection {
             }
             return;
           default:
-            throw MySQLClientException("Unsupported auth plugin name: ${payload.authPluginName}");
+            throw MySQLClientException(
+                "Unsupported auth plugin name: ${payload.authPluginName}");
         }
       } catch (e) {
         // not auth switch request packet, continue packet processing
@@ -238,11 +253,13 @@ class MySQLConnection {
         assert(_activeAuthPluginName != null);
 
         if (_activeAuthPluginName != 'caching_sha2_password') {
-          throw MySQLClientException("Unexpected auth plugin name $_activeAuthPluginName, while receiving MySQLPacketExtraAuthData packet");
+          throw MySQLClientException(
+              "Unexpected auth plugin name $_activeAuthPluginName, while receiving MySQLPacketExtraAuthData packet");
         }
 
         if (_secure == false) {
-          throw MySQLClientException("Auth plugin caching_sha2_password is supported only with secure connections. Pass secure: true or use another auth method");
+          throw MySQLClientException(
+              "Auth plugin caching_sha2_password is supported only with secure connections. Pass secure: true or use another auth method");
         }
 
         final payload = packet.payload as MySQLPacketExtraAuthData;
@@ -272,11 +289,13 @@ class MySQLConnection {
         assert(_activeAuthPluginName != null);
 
         if (_activeAuthPluginName != 'sha256_password') {
-          throw MySQLClientException("Unexpected plugin for AuthMoreData: $_activeAuthPluginName");
+          throw MySQLClientException(
+              "Unexpected plugin for AuthMoreData: $_activeAuthPluginName");
         }
 
         if (_secure == false) {
-          throw MySQLClientException("Auth plugin sha256_password is supported only with secure connections. Pass secure: true or use another auth method");
+          throw MySQLClientException(
+              "Auth plugin sha256_password is supported only with secure connections. Pass secure: true or use another auth method");
         }
 
         final payload = packet.payload as MySQLPacketAuthMoreData;
@@ -303,12 +322,14 @@ class MySQLConnection {
           _socket.add(response.encode());
           return;
         } else {
-          throw MySQLClientException("Unknown sha256_password AuthMoreData subtype: $subType");
+          throw MySQLClientException(
+              "Unknown sha256_password AuthMoreData subtype: $subType");
         }
       }
       if (packet.isErrorPacket()) {
         final errorPayload = packet.payload as MySQLPacketError;
-        throw MySQLServerException(errorPayload.errorMessage, errorPayload.errorCode);
+        throw MySQLServerException(
+            errorPayload.errorMessage, errorPayload.errorCode);
       }
 
       if (packet.isOkPacket()) {
@@ -414,7 +435,8 @@ class MySQLConnection {
         _socket = secureSocket;
         _socketSubscription = _socket.listen((data) {
           for (final chunk in _splitPackets(data)) {
-            _processSocketData(chunk).onError((error, stackTrace) => _lastError = error);
+            _processSocketData(chunk)
+                .onError((error, stackTrace) => _lastError = error);
           }
         });
 
@@ -433,7 +455,8 @@ class MySQLConnection {
 
     switch (authPluginName) {
       case 'mysql_native_password':
-        final responsePayload = MySQLPacketHandshakeResponse41.createWithNativePassword(
+        final responsePayload =
+            MySQLPacketHandshakeResponse41.createWithNativePassword(
           username: _username,
           password: _password,
           initialHandshakePayload: payload,
@@ -449,7 +472,8 @@ class MySQLConnection {
         break;
 
       case 'caching_sha2_password':
-        final responsePayload = MySQLPacketHandshakeResponse41.createWithCachingSha2Password(
+        final responsePayload =
+            MySQLPacketHandshakeResponse41.createWithCachingSha2Password(
           username: _username,
           password: _password,
           initialHandshakePayload: payload,
@@ -465,7 +489,8 @@ class MySQLConnection {
         break;
 
       case 'sha256_password':
-        final responsePayload = MySQLPacketHandshakeResponse41.createWithSha256Password(
+        final responsePayload =
+            MySQLPacketHandshakeResponse41.createWithSha256Password(
           username: _username,
           password: _password,
           initialHandshakePayload: payload,
@@ -482,7 +507,8 @@ class MySQLConnection {
         break;
 
       default:
-        throw MySQLClientException("Unsupported auth plugin name: $authPluginName");
+        throw MySQLClientException(
+            "Unsupported auth plugin name: $authPluginName");
     }
   }
 
@@ -509,7 +535,8 @@ class MySQLConnection {
 
     // wait for ready state
     if (_state != _MySQLConnectionState.connectionEstablished) {
-      await _waitForState(_MySQLConnectionState.connectionEstablished).timeout(Duration(milliseconds: _timeoutMs));
+      await _waitForState(_MySQLConnectionState.connectionEstablished)
+          .timeout(Duration(milliseconds: _timeoutMs));
     }
 
     _state = _MySQLConnectionState.waitingCommandResponse;
@@ -560,7 +587,8 @@ class MySQLConnection {
         switch (state) {
           case 0:
             // if packet is OK packet, there is no data
-            if (MySQLPacket.detectPacketType(data) == MySQLGenericPacketType.ok) {
+            if (MySQLPacket.detectPacketType(data) ==
+                MySQLGenericPacketType.ok) {
               final okPacket = MySQLPacket.decodeGenericPacket(data);
               _state = _MySQLConnectionState.connectionEstablished;
               completer.complete(
@@ -593,7 +621,8 @@ class MySQLConnection {
               }
 
               // check eof
-              if (MySQLPacket.detectPacketType(data) == MySQLGenericPacketType.eof) {
+              if (MySQLPacket.detectPacketType(data) ==
+                  MySQLGenericPacketType.eof) {
                 state = 4;
 
                 _state = _MySQLConnectionState.connectionEstablished;
@@ -608,7 +637,8 @@ class MySQLConnection {
               break;
             } else {
               // check eof
-              if (MySQLPacket.detectPacketType(data) == MySQLGenericPacketType.eof) {
+              if (MySQLPacket.detectPacketType(data) ==
+                  MySQLGenericPacketType.eof) {
                 final resultSetPacket = MySQLPacketResultSet(
                   columnCount: BigInt.from(colsCount),
                   columns: colDefs,
@@ -627,7 +657,8 @@ class MySQLConnection {
                 final eofPacket = MySQLPacket.decodeGenericPacket(data);
                 final eofPayload = eofPacket.payload as MySQLPacketEOF;
 
-                if (eofPayload.statusFlags & mysqlServerFlagMoreResultsExists != 0) {
+                if (eofPayload.statusFlags & mysqlServerFlagMoreResultsExists !=
+                    0) {
                   if (isStoreProcedureQuery(query)) {
                     state = 4;
                     _state = _MySQLConnectionState.connectionEstablished;
@@ -708,7 +739,8 @@ class MySQLConnection {
   /// Execute [callback] inside database transaction
   ///
   /// If MySQLClientException is thrown inside [callback] function, transaction is rolled back
-  Future<T> transactional<T>(FutureOr<T> Function(MySQLConnection conn) callback) async {
+  Future<T> transactional<T>(
+      FutureOr<T> Function(MySQLConnection conn) callback) async {
     // prevent double transaction
     if (_inTransaction) {
       throw MySQLClientException("Already in transaction");
@@ -777,7 +809,8 @@ class MySQLConnection {
 
       // check param exists
       if (false == convertedParams.containsKey(paramName)) {
-        throw MySQLClientException("There is no parameter with name: $paramName");
+        throw MySQLClientException(
+            "There is no parameter with name: $paramName");
       }
 
       final newQuery = query.replaceFirst(
@@ -807,7 +840,8 @@ class MySQLConnection {
 
     // wait for ready state
     if (_state != _MySQLConnectionState.connectionEstablished) {
-      await _waitForState(_MySQLConnectionState.connectionEstablished).timeout(Duration(milliseconds: _timeoutMs));
+      await _waitForState(_MySQLConnectionState.connectionEstablished)
+          .timeout(Duration(milliseconds: _timeoutMs));
     }
 
     _state = _MySQLConnectionState.waitingCommandResponse;
@@ -843,14 +877,16 @@ class MySQLConnection {
           default:
             packet = null;
 
-            if (MySQLPacket.detectPacketType(data) == MySQLGenericPacketType.eof) {
+            if (MySQLPacket.detectPacketType(data) ==
+                MySQLGenericPacketType.eof) {
               numOfEofPacketsParsed++;
 
               var done = false;
 
               assert(preparedPacket != null);
 
-              if (preparedPacket!.numOfCols > 0 && preparedPacket!.numOfParams > 0) {
+              if (preparedPacket!.numOfCols > 0 &&
+                  preparedPacket!.numOfParams > 0) {
                 // there should be two EOF packets in this case
                 if (numOfEofPacketsParsed == 2) {
                   done = true;
@@ -917,12 +953,14 @@ class MySQLConnection {
     bool iterable,
   ) async {
     if (!_connected) {
-      throw MySQLClientException("Can not execute prepared stmt: connection closed");
+      throw MySQLClientException(
+          "Can not execute prepared stmt: connection closed");
     }
 
     // wait for ready state
     if (_state != _MySQLConnectionState.connectionEstablished) {
-      await _waitForState(_MySQLConnectionState.connectionEstablished).timeout(Duration(milliseconds: _timeoutMs));
+      await _waitForState(_MySQLConnectionState.connectionEstablished)
+          .timeout(Duration(milliseconds: _timeoutMs));
     }
 
     _state = _MySQLConnectionState.waitingCommandResponse;
@@ -967,7 +1005,8 @@ class MySQLConnection {
         switch (state) {
           case 0:
             // if packet is OK packet, there is no data
-            if (MySQLPacket.detectPacketType(data) == MySQLGenericPacketType.ok) {
+            if (MySQLPacket.detectPacketType(data) ==
+                MySQLGenericPacketType.ok) {
               final okPacket = MySQLPacket.decodeGenericPacket(data);
               _state = _MySQLConnectionState.connectionEstablished;
 
@@ -990,7 +1029,8 @@ class MySQLConnection {
             } else if (packet.isErrorPacket()) {
               final errorPayload = packet.payload as MySQLPacketError;
               completer.completeError(
-                MySQLServerException(errorPayload.errorMessage, errorPayload.errorCode),
+                MySQLServerException(
+                    errorPayload.errorMessage, errorPayload.errorCode),
               );
               _state = _MySQLConnectionState.connectionEstablished;
               return;
@@ -1015,7 +1055,8 @@ class MySQLConnection {
               }
 
               // check eof
-              if (MySQLPacket.detectPacketType(data) == MySQLGenericPacketType.eof) {
+              if (MySQLPacket.detectPacketType(data) ==
+                  MySQLGenericPacketType.eof) {
                 state = 4;
 
                 _state = _MySQLConnectionState.connectionEstablished;
@@ -1023,14 +1064,17 @@ class MySQLConnection {
                 return;
               }
 
-              packet = MySQLPacket.decodeBinaryResultSetRowPacket(data, colDefs);
-              final values = (packet.payload as MySQLBinaryResultSetRowPacket).values;
+              packet =
+                  MySQLPacket.decodeBinaryResultSetRowPacket(data, colDefs);
+              final values =
+                  (packet.payload as MySQLBinaryResultSetRowPacket).values;
               sink!.add(ResultSetRow._(colDefs: colDefs, values: values));
               packet = null;
               break;
             } else {
               // check eof
-              if (MySQLPacket.detectPacketType(data) == MySQLGenericPacketType.eof) {
+              if (MySQLPacket.detectPacketType(data) ==
+                  MySQLGenericPacketType.eof) {
                 state = 4;
 
                 final resultSetPacket = MySQLPacketBinaryResultSet(
@@ -1048,7 +1092,8 @@ class MySQLConnection {
                 return;
               }
 
-              packet = MySQLPacket.decodeBinaryResultSetRowPacket(data, colDefs);
+              packet =
+                  MySQLPacket.decodeBinaryResultSetRowPacket(data, colDefs);
 
               break;
             }
@@ -1150,7 +1195,8 @@ class MySQLConnection {
 
     // wait for ready state
     if (_state != _MySQLConnectionState.connectionEstablished) {
-      await _waitForState(_MySQLConnectionState.connectionEstablished).timeout(Duration(milliseconds: _timeoutMs));
+      await _waitForState(_MySQLConnectionState.connectionEstablished)
+          .timeout(Duration(milliseconds: _timeoutMs));
     }
 
     final payload = MySQLPacketCommStmtClose(
@@ -1264,7 +1310,9 @@ class MySQLConnection {
 }
 
 /// Base class to represent result of calling [MySQLConnection.execute] and [PreparedStmt.execute]
-abstract class IResultSet with IterableMixin<IResultSet> implements Iterator<IResultSet>, Iterable<IResultSet> {
+abstract class IResultSet
+    with IterableMixin<IResultSet>
+    implements Iterator<IResultSet>, Iterable<IResultSet> {
   /// Number of colums in this result if any
   int get numOfColumns;
 
@@ -1576,7 +1624,8 @@ class ResultSetRow {
     final value = colAt(colIndex);
     final colDef = _colDefs[colIndex];
 
-    return colDef.type.convertStringValueToProvidedType<T>(value, colDef.columnLength);
+    return colDef.type
+        .convertStringValueToProvidedType<T>(value, colDef.columnLength);
   }
 
   /// Get column data by column name
@@ -1613,7 +1662,8 @@ class ResultSetRow {
 
     final colDef = _colDefs[colIndex];
 
-    return colDef.type.convertStringValueToProvidedType<T>(value, colDef.columnLength);
+    return colDef.type
+        .convertStringValueToProvidedType<T>(value, colDef.columnLength);
   }
 
   /// Get data for all columns

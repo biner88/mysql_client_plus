@@ -45,19 +45,22 @@ void main() {
 
     group('test decoding three byte ints', () {
       test("decoding int value 0", () {
-        var buff = ByteData.sublistView(Uint8List.fromList([0xfd, 0x00, 0x00, 0x00]));
+        var buff =
+            ByteData.sublistView(Uint8List.fromList([0xfd, 0x00, 0x00, 0x00]));
         var actual = buff.getVariableEncInt(0);
         expect(actual.item1.toInt(), 0);
         expect(actual.item2, 4);
       });
       test("decoding int value 1048576", () {
-        var buff = ByteData.sublistView(Uint8List.fromList([0xfd, 0x00, 0x00, 0x10]));
+        var buff =
+            ByteData.sublistView(Uint8List.fromList([0xfd, 0x00, 0x00, 0x10]));
         var actual = buff.getVariableEncInt(0);
         expect(actual.item1.toInt(), 1048576);
         expect(actual.item2, 4);
       });
       test("decoding int value 1048613", () {
-        var buff = ByteData.sublistView(Uint8List.fromList([0xfd, 0x25, 0x00, 0x10]));
+        var buff =
+            ByteData.sublistView(Uint8List.fromList([0xfd, 0x25, 0x00, 0x10]));
         var actual = buff.getVariableEncInt(0);
         expect(actual.item1.toInt(), 1048613);
         expect(actual.item2, 4);
@@ -65,25 +68,29 @@ void main() {
     });
     group('test decoding eight byte ints', () {
       test("decoding int value 0", () {
-        var buff = ByteData.sublistView(Uint8List.fromList([0xfe, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]));
+        var buff = ByteData.sublistView(Uint8List.fromList(
+            [0xfe, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]));
         var actual = buff.getVariableEncInt(0);
         expect(actual.item1.toInt(), 0);
         expect(actual.item2, 9);
       });
       test("decoding int value 21", () {
-        var buff = ByteData.sublistView(Uint8List.fromList([0xfe, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]));
+        var buff = ByteData.sublistView(Uint8List.fromList(
+            [0xfe, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]));
         var actual = buff.getVariableEncInt(0);
         expect(actual.item1.toInt(), 21);
         expect(actual.item2, 9);
       });
       test("decoding int value 4294967295", () {
-        var buff = ByteData.sublistView(Uint8List.fromList([0xfe, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00]));
+        var buff = ByteData.sublistView(Uint8List.fromList(
+            [0xfe, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00]));
         var actual = buff.getVariableEncInt(0);
         expect(actual.item1.toInt(), 4294967295);
         expect(actual.item2, 9);
       });
       test("decoding int value 1099511627775", () {
-        var buff = ByteData.sublistView(Uint8List.fromList([0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00]));
+        var buff = ByteData.sublistView(Uint8List.fromList(
+            [0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00]));
         var actual = buff.getVariableEncInt(0);
         expect(actual.item1.toString(), '1099511627775');
         expect(actual.item2, 9);
@@ -126,17 +133,20 @@ void main() {
       test("test encoding int value 16777216", () {
         final writer = ByteDataWriter(endian: Endian.little);
         writer.writeVariableEncInt(16777216);
-        expect(writer.toBytes(), [0xfe, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
+        expect(writer.toBytes(),
+            [0xfe, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
       });
       test("test encoding int value 16777217", () {
         final writer = ByteDataWriter(endian: Endian.little);
         writer.writeVariableEncInt(16777217);
-        expect(writer.toBytes(), [0xfe, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
+        expect(writer.toBytes(),
+            [0xfe, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
       });
       test("test encoding int value 9223372036854775807", () {
         final writer = ByteDataWriter(endian: Endian.little);
         writer.writeVariableEncInt(9223372036854775807);
-        expect(writer.toBytes(), [0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]);
+        expect(writer.toBytes(),
+            [0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]);
       });
     });
   });
@@ -201,12 +211,14 @@ void main() {
       expect(actual, "ab");
     });
     test("testing getStringEOF multibyte 1", () {
-      final buffer = Uint8List.fromList([0xd1, 0x82, 0xd0, 0xb5, 0xd1, 0x81, 0xd1, 0x82]);
+      final buffer =
+          Uint8List.fromList([0xd1, 0x82, 0xd0, 0xb5, 0xd1, 0x81, 0xd1, 0x82]);
       final actual = buffer.getUtf8StringEOF(0);
       expect(actual, "тест");
     });
     test("testing getStringEOF multibyte 2", () {
-      final buffer = Uint8List.fromList([0x00, 0x01, 0xd1, 0x82, 0xd0, 0xb5, 0xd1, 0x81, 0xd1, 0x82]);
+      final buffer = Uint8List.fromList(
+          [0x00, 0x01, 0xd1, 0x82, 0xd0, 0xb5, 0xd1, 0x81, 0xd1, 0x82]);
       final actual = buffer.getUtf8StringEOF(2);
       expect(actual, "тест");
     });
@@ -223,7 +235,8 @@ void main() {
       expect(actual.item2, 4);
     });
     test("testing getLengthEncodedString 3", () {
-      final buffer = Uint8List.fromList([0xff, 0xde, 0x03, 0x64, 0x65, 0x66, 0xff, 0xcc]);
+      final buffer =
+          Uint8List.fromList([0xff, 0xde, 0x03, 0x64, 0x65, 0x66, 0xff, 0xcc]);
       final actual = buffer.getUtf8LengthEncodedString(2);
       expect(actual.item1, "def");
       expect(actual.item2, 4);

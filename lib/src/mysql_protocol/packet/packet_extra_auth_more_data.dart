@@ -17,7 +17,10 @@ class MySQLPacketAuthMoreData extends MySQLPacketPayload {
 
   ///  Parses a PEM-encoded RSA public key into a RSAPublicKey object.
   static RSAPublicKey _parsePublicKeyFromPem(String pem) {
-    final lines = pem.split('\n').where((line) => !line.startsWith('---') && line.trim().isNotEmpty).toList();
+    final lines = pem
+        .split('\n')
+        .where((line) => !line.startsWith('---') && line.trim().isNotEmpty)
+        .toList();
 
     final base64Str = lines.join('');
     final derBytes = base64.decode(base64Str);
@@ -26,7 +29,8 @@ class MySQLPacketAuthMoreData extends MySQLPacketPayload {
     final topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
     final publicKeyBitString = topLevelSeq.elements![1] as ASN1BitString;
 
-    final publicKeyAsn = ASN1Parser(publicKeyBitString.stringValues as Uint8List);
+    final publicKeyAsn =
+        ASN1Parser(publicKeyBitString.stringValues as Uint8List);
     final publicKeySeq = publicKeyAsn.nextObject() as ASN1Sequence;
 
     final modulus = publicKeySeq.elements![0] as ASN1Integer;
@@ -42,7 +46,8 @@ class MySQLPacketAuthMoreData extends MySQLPacketPayload {
   }) {
     final publicKey = _parsePublicKeyFromPem(publicKeyPem);
 
-    final encryptor = OAEPEncoding(RSAEngine())..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
+    final encryptor = OAEPEncoding(RSAEngine())
+      ..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
 
     final plaintext = Uint8List.fromList(utf8.encode('$password\u0000'));
     return encryptor.process(plaintext);
