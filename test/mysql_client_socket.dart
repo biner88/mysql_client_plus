@@ -6,8 +6,8 @@ void main() {
   testMysqlClient(
     InternetAddress('/tmp/mysql.sock', type: InternetAddressType.unix),
     3306,
-    'your_user',
-    'your_password',
-    'testdb',
+    'root',
+    'root',
+    'test_db',
   );
 }

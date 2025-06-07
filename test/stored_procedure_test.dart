@@ -9,9 +9,9 @@ void main() {
     conn = await MySQLConnection.createConnection(
       host: 'localhost',
       port: 3306,
-      userName: 'your_user',
-      password: 'your_password',
-      databaseName: 'testdb',
+      userName: 'root',
+      password: 'root',
+      databaseName: 'test_db',
       secure: true,
     );
     await conn!.connect();
@@ -30,7 +30,7 @@ void main() {
   test('The stored procedure test', () async {
     await conn!.execute("DROP procedure IF EXISTS proc01");
     await conn!.execute('''
-CREATE DEFINER=`your_user`@`localhost` PROCEDURE `proc01`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE `proc01`()
 begin
     declare test_name varchar(20) default '';
     set test_name = 'test data';  

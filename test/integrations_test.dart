@@ -10,9 +10,9 @@ void main() {
     conn = await MySQLConnection.createConnection(
       host: 'localhost',
       port: 3306,
-      userName: 'your_user',
-      password: 'your_password',
-      databaseName: 'testdb',
+      userName: 'root',
+      password: 'root',
+      databaseName: 'test_db',
       secure: true,
     );
     await conn!.connect();
@@ -47,16 +47,14 @@ void main() {
   });
 
   test("Inserindo um inteiro via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (int_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (int_column) VALUES (?)');
     final result = await stmt.execute([42]);
     expect(result.affectedRows.toInt(), equals(1));
     await stmt.deallocate();
   });
 
   test("Inserindo uma string via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (string_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (string_column) VALUES (?)');
     final result = await stmt.execute(['Hello, world!']);
     expect(result.affectedRows.toInt(), equals(1));
     await stmt.deallocate();
@@ -64,16 +62,14 @@ void main() {
 
   test("Inserindo um DateTime via prepared statement", () async {
     final now = DateTime.now();
-    final stmt = await conn!
-        .prepare('INSERT INTO my_table (datetime_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (datetime_column) VALUES (?)');
     final result = await stmt.execute([now]);
     expect(result.affectedRows.toInt(), equals(1));
     await stmt.deallocate();
   });
 
   test("Inserting binary data (Uint8List) via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (blob_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (blob_column) VALUES (?)');
     // Represents "Hello"
     final myBytes = Uint8List.fromList([0x48, 0x65, 0x6c, 0x6c, 0x6f]);
     final result = await stmt.execute([myBytes]);
@@ -82,16 +78,14 @@ void main() {
   });
 
   test("Inserindo um booleano via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (bool_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (bool_column) VALUES (?)');
     final result = await stmt.execute([true]);
     expect(result.affectedRows.toInt(), equals(1));
     await stmt.deallocate();
   });
 
   test("Inserindo um valor DECIMAL via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (decimal_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (decimal_column) VALUES (?)');
     // We use a number that can be converted to String or num;
     // in this example, 1234.56
     final result = await stmt.execute([1234.56]);
@@ -100,32 +94,28 @@ void main() {
   });
 
   test("Inserindo um valor FLOAT via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (float_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (float_column) VALUES (?)');
     final result = await stmt.execute([3.14]);
     expect(result.affectedRows.toInt(), equals(1));
     await stmt.deallocate();
   });
 
   test("Inserindo um valor DOUBLE via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (double_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (double_column) VALUES (?)');
     final result = await stmt.execute([2.718281828]);
     expect(result.affectedRows.toInt(), equals(1));
     await stmt.deallocate();
   });
 
   test("Inserindo uma DATA via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (date_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (date_column) VALUES (?)');
     final result = await stmt.execute(['2023-05-01']);
     expect(result.affectedRows.toInt(), equals(1));
     await stmt.deallocate();
   });
 
   test("Inserindo um TIME via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (time_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (time_column) VALUES (?)');
     // Using a non-format string "HH:MM:SS"
     final result = await stmt.execute(['15:30:45']);
     expect(result.affectedRows.toInt(), equals(1));
@@ -133,8 +123,7 @@ void main() {
   });
 
   test("Inserindo um YEAR via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (year_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (year_column) VALUES (?)');
     // Using an integer or string representing the year
     final result = await stmt.execute([2023]);
     expect(result.affectedRows.toInt(), equals(1));
@@ -210,29 +199,24 @@ void main() {
     ''');
 
     // Insere a primeira linha com id = 1
-    final stmtInsert =
-        await conn!.prepare("INSERT INTO test_dup (id, name) VALUES (?, ?)");
+    final stmtInsert = await conn!.prepare("INSERT INTO test_dup (id, name) VALUES (?, ?)");
     final result1 = await stmtInsert.execute([1, "Original"]);
     expect(result1.affectedRows.toInt(), equals(1));
     await stmtInsert.deallocate();
 
     // Try inserting another line with id = 1, or it should generate an error
-    final stmtDup =
-        await conn!.prepare("INSERT INTO test_dup (id, name) VALUES (?, ?)");
+    final stmtDup = await conn!.prepare("INSERT INTO test_dup (id, name) VALUES (?, ?)");
     try {
       await stmtDup.execute([1, "Duplicado"]);
       fail("Deveria lançar erro de chave duplicada");
     } catch (e) {
       // Verifica se a mensagem de erro contém "Duplicate entry"
-      expect(e.toString(), contains("Duplicate entry"),
-          reason:
-              "Or the error should indicate that there is no entry with key '1'");
+      expect(e.toString(), contains("Duplicate entry"), reason: "Or the error should indicate that there is no entry with key '1'");
     }
     await stmtDup.deallocate();
   });
   test("Inserindo uma DATA via prepared statement", () async {
-    final stmt =
-        await conn!.prepare('INSERT INTO my_table (json_column) VALUES (?)');
+    final stmt = await conn!.prepare('INSERT INTO my_table (json_column) VALUES (?)');
     final result = await stmt.execute(['{"name":"Alice","age":30}']);
     expect(result.affectedRows.toInt(), equals(1));
     await stmt.deallocate();

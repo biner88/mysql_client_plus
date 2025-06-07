@@ -8,9 +8,9 @@ void main() {
     conn = await MySQLConnection.createConnection(
       host: 'localhost',
       port: 3306,
-      userName: 'your_user_sha256',
-      password: 'your_password_sha256',
-      databaseName: 'testdb',
+      userName: 'root',
+      password: 'root',
+      databaseName: 'test_db',
       secure: true,
     );
     await conn!.connect();
@@ -24,8 +24,7 @@ void main() {
   });
   test('test sha256_password plugin', () async {
     await conn!.execute("DROP TABLE IF EXISTS sha256_password_test");
-    await conn!.execute(
-        "CREATE TABLE sha256_password_test (id INT AUTO_INCREMENT PRIMARY KEY, value INT)");
+    await conn!.execute("CREATE TABLE sha256_password_test (id INT AUTO_INCREMENT PRIMARY KEY, value INT)");
     await conn!.execute("DROP TABLE IF EXISTS sha256_password_test");
   });
 }
