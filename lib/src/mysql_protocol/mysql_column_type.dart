@@ -180,7 +180,7 @@ class MySQLColumnType {
           throw MySQLClientException('Cannot convert JSON to $T');
         default:
           throw MySQLProtocolException(
-            "Cannot convert MySQL type $_value to requested type DateTime",
+            "Cannot convert MySQL type $_value to requested type JSON",
           );
       }
     }
