@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:tuple/tuple.dart';
 import 'package:mysql_client_plus/exception.dart';
@@ -161,7 +162,28 @@ class MySQLColumnType {
           );
       }
     }
-
+    if (T == Map || T == List) {
+      switch (_value) {
+        case mysqlColumnTypeJson:
+          if (value is String) {
+            final decoded = jsonDecode(value);
+            if (T == dynamic || decoded is T) {
+              return decoded as T;
+            }
+          }
+          if (value is Map && T == Map) {
+            return value as T;
+          }
+          if (value is List && T == List) {
+            return value as T;
+          }
+          throw MySQLClientException('Cannot convert JSON to $T');
+        default:
+          throw MySQLProtocolException(
+            "Cannot convert MySQL type $_value to requested type DateTime",
+          );
+      }
+    }
     throw MySQLProtocolException(
       "Cannot convert MySQL type $_value to requested type ${T.runtimeType}",
     );
@@ -169,13 +191,12 @@ class MySQLColumnType {
 
   Type getBestMatchDartType(int columnLength) {
     switch (_value) {
-      case mysqlColumnTypeJson:
-        return String;
       case mysqlColumnTypeString:
       case mysqlColumnTypeVarString:
       case mysqlColumnTypeVarChar:
       case mysqlColumnTypeEnum:
       case mysqlColumnTypeSet:
+      case mysqlColumnTypeJson:
         return String;
       case mysqlColumnTypeLongBlob:
       case mysqlColumnTypeMediumBlob:
@@ -393,6 +414,20 @@ Tuple2<dynamic, int> parseBinaryColumnData(
       {
         final yearValue = data.getUint16(startOffset, Endian.little);
         return Tuple2(yearValue.toString(), 2);
+      }
+    case mysqlColumnTypeJson:
+      {
+        final lengthEncoded = buffer.getLengthEncodedBytes(startOffset);
+        final jsonBytes = lengthEncoded.item1;
+        final bytesConsumed = lengthEncoded.item2;
+
+        try {
+          final jsonString = utf8.decode(jsonBytes);
+          final jsonObject = jsonDecode(jsonString);
+          return Tuple2(jsonObject, bytesConsumed);
+        } catch (e) {
+          return Tuple2(utf8.decode(jsonBytes), bytesConsumed);
+        }
       }
   }
 

@@ -24,7 +24,8 @@ void main() {
   });
   test('test sha256_password plugin', () async {
     await conn!.execute("DROP TABLE IF EXISTS sha256_password_test");
-    await conn!.execute("CREATE TABLE sha256_password_test (id INT AUTO_INCREMENT PRIMARY KEY, value INT)");
+    await conn!.execute(
+        "CREATE TABLE sha256_password_test (id INT AUTO_INCREMENT PRIMARY KEY, value INT)");
     await conn!.execute("DROP TABLE IF EXISTS sha256_password_test");
   });
 }

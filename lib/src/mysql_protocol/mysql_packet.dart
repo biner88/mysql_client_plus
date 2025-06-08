@@ -152,7 +152,8 @@ class MySQLPacket {
     final type = byteData.getUint8(offset);
 
     if (type != 0xfe) {
-      throw MySQLProtocolException("Cannot decode AuthSwitchResponse packet: type is not 0xfe");
+      throw MySQLProtocolException(
+          "Cannot decode AuthSwitchResponse packet: type is not 0xfe");
     }
 
     final payload = MySQLPacketAuthSwitchRequest.decode(
@@ -326,7 +327,9 @@ class MySQLPacket {
       return true;
     }
     // Some servers send OK with header 0xfe and payloadLength < 9 as EOF
-    if (payload is MySQLPacketOK && payloadLength < 9 && (payload as MySQLPacketOK).header == 0xfe) {
+    if (payload is MySQLPacketOK &&
+        payloadLength < 9 &&
+        (payload as MySQLPacketOK).header == 0xfe) {
       return true;
     }
     return false;

@@ -1,3 +1,7 @@
+## 0.1.0
+
+* feat: Add support for binary queries on JSON data types
+
 ## 0.0.32
 
 * Add support Stored procedure callback [[Test]](test/stored_procedure_test.dart)

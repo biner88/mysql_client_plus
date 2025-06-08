@@ -1181,6 +1181,8 @@ class MySQLConnection {
       } else {
         return MySQLColumnType.blobType;
       }
+    } else if (param is Map || param is List) {
+      return MySQLColumnType.jsonType;
     } else {
       throw MySQLClientException(
         "Unsupported parameter type: ${param.runtimeType}",

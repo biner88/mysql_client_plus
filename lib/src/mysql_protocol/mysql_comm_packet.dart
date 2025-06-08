@@ -6,6 +6,8 @@ import 'package:mysql_client_plus/exception.dart';
 import 'package:mysql_client_plus/mysql_protocol.dart';
 import 'package:mysql_client_plus/mysql_protocol_extension.dart';
 
+/// Represents the COM_INIT_DB command in the MySQL protocol.
+/// This command is used to select a database (schema) on the server.
 class MySQLPacketCommInitDB extends MySQLPacketPayload {
   final String schemaName;
 
@@ -25,6 +27,8 @@ class MySQLPacketCommInitDB extends MySQLPacketPayload {
   }
 }
 
+/// Represents the COM_QUERY command in the MySQL protocol.
+/// This command is used to send a SQL query to the server.
 class MySQLPacketCommQuery extends MySQLPacketPayload {
   final String query;
 
@@ -41,6 +45,8 @@ class MySQLPacketCommQuery extends MySQLPacketPayload {
   }
 }
 
+/// Represents the COM_STMT_PREPARE command in the MySQL protocol.
+/// This command is used to prepare a SQL statement for execution.
 class MySQLPacketCommStmtPrepare extends MySQLPacketPayload {
   final String query;
 
@@ -57,6 +63,8 @@ class MySQLPacketCommStmtPrepare extends MySQLPacketPayload {
   }
 }
 
+/// Represents the COM_STMT_EXECUTE command in the MySQL protocol.
+/// This command is used to execute a prepared statement with parameters.
 class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
   final int stmtID;
 
@@ -108,17 +116,17 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
       for (int i = 0; i < params.length; i++) {
         final paramType = paramTypes[i];
         if (paramType == null) {
-          // Se for nulo, o tipo é mysqlColumnTypeNull = 0x06
+          // If null, the type is mysqlColumnTypeNull = 0x06
           buffer.writeUint8(mysqlColumnTypeNull);
-          buffer.writeUint8(0); // Flag "unsigned" ou outro, geralmente 0
+          buffer.writeUint8(0); // "unsigned" flag or other, usually 0
         } else {
           buffer.writeUint8(paramType.intVal);
-          // Por exemplo, se quiser indicar "unsigned", poderia setar algo. Aqui, 0 = sem flag.
+          // For example, to indicate "unsigned", could set something. Here, 0 = no flag.
           buffer.writeUint8(0);
         }
       }
 
-      // Escreve os valores dos parâmetros não-nulos
+      // Write non-null parameter values
       for (int i = 0; i < params.length; i++) {
         final param = params[i];
         final paramType = paramTypes[i];
@@ -131,6 +139,7 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
     return buffer.toBytes();
   }
 
+  /// Writes a parameter value to the buffer based on its MySQL type.
   void _writeParamValue(
     ByteDataWriter buffer,
     dynamic param,
@@ -138,11 +147,11 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
   ) {
     switch (type.intVal) {
       case mysqlColumnTypeTiny: // 1 byte
-        // Se o parâmetro for booleano, converte para 1 ou 0. Caso contrário, assume int 1 byte.
+        // If parameter is boolean, convert to 1 or 0. Otherwise, assume 1-byte int.
         if (param is bool) {
           buffer.writeUint8(param ? 1 : 0);
         } else {
-          // Se param for int, convertendo para 8 bits (pode estourar se for >127).
+          // If param is int, convert to 8 bits (may overflow if >127).
           buffer.writeInt8(param);
         }
         break;
@@ -152,7 +161,7 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
         break;
 
       case mysqlColumnTypeLong: // 4 bytes (int32)
-      case mysqlColumnTypeInt24: // no MySQL, 24 bits, mas normalmente tratamos c/ 32 bits
+      case mysqlColumnTypeInt24: // in MySQL, 24 bits, but typically handled as 32 bits
         buffer.writeInt32(param, Endian.little);
         break;
 
@@ -177,7 +186,6 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
       case mysqlColumnTypeTime:
         _writeTime(buffer, param);
         break;
-
       // Strings, BLOBs, DECIMALS etc. → length encoded + bytes
       case mysqlColumnTypeString:
       case mysqlColumnTypeVarString:
@@ -193,17 +201,37 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
       case mysqlColumnTypeDecimal:
       case mysqlColumnTypeNewDecimal:
         {
-          // Se o parâmetro for Uint8List, manda-o como binário; caso contrário, converte para string UTF-8
+          // If parameter is Uint8List, send as binary; otherwise, convert to UTF-8 string
           final encodedData =
               (param is Uint8List) ? param : utf8.encode(param.toString());
 
-          // Primeiro escreve o tamanho (length-encoded)
+          // First write the length (length-encoded)
           buffer.writeVariableEncInt(encodedData.length);
-          // Depois escreve os bytes
+          // Then write the bytes
           buffer.write(encodedData);
         }
         break;
+      case mysqlColumnTypeJson:
+        String jsonString;
+        if (param is String) {
+          // Validate if it's valid JSON
+          try {
+            jsonDecode(param);
+            jsonString = param;
+          } catch (e) {
+            // If not valid JSON, treat as normal string
+            jsonString = jsonEncode(param);
+          }
+        } else if (param is Map || param is List) {
+          jsonString = jsonEncode(param);
+        } else {
+          jsonString = jsonEncode(param.toString());
+        }
 
+        final encodedData = utf8.encode(jsonString);
+        buffer.writeVariableEncInt(encodedData.length);
+        buffer.write(encodedData);
+        break;
       default:
         throw MySQLProtocolException(
           "Unsupported parameter type: ${type.intVal}",
@@ -211,10 +239,10 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
     }
   }
 
-  /// Escreve um valor do tipo DateTime [dateTime] no [buffer] de acordo com o protocolo MySQL.
+  /// Writes a DateTime value [dateTime] to the [buffer] according to the MySQL protocol.
   ///
-  /// Dependendo dos valores de ano, mês, dia, hora, minuto, segundo e microssegundos,
-  /// o método escolhe um formato de 4, 7 ou 11 bytes.
+  /// Depending on the values of year, month, day, hour, minute, second, and microsecond,
+  /// the method chooses a format of 4, 7, or 11 bytes.
   void _writeDateTime(ByteDataWriter buffer, DateTime dateTime) {
     final year = dateTime.year;
     final month = dateTime.month;
@@ -224,7 +252,7 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
     final second = dateTime.second;
     final microsecond = dateTime.microsecond;
 
-    // Caso todos os valores sejam zero, escreve 0 (sem dados de data/hora).
+    // If all values are zero, write 0 (no date/time data).
     if (year == 0 &&
         month == 0 &&
         day == 0 &&
@@ -237,8 +265,8 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
     }
 
     if (microsecond > 0) {
-      // 11 bytes: 1 de comprimento, 2 para ano, 1 p/ mês, 1 p/ dia,
-      // 1 p/ hora, 1 p/ min, 1 p/ seg, 4 p/ microsegundos
+      // 11 bytes: 1 for length, 2 for year, 1 for month, 1 for day,
+      // 1 for hour, 1 for minute, 1 for second, 4 for microseconds
       buffer.writeUint8(11);
       buffer.writeUint16(year, Endian.little);
       buffer.writeUint8(month);
@@ -248,8 +276,8 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
       buffer.writeUint8(second);
       buffer.writeUint32(microsecond, Endian.little);
     } else if (hour > 0 || minute > 0 || second > 0) {
-      // 7 bytes: 1 de comprimento, 2 p/ ano, 1 p/ mês, 1 p/ dia,
-      // 1 p/ hora, 1 p/ min, 1 p/ seg
+      // 7 bytes: 1 for length, 2 for year, 1 for month, 1 for day,
+      // 1 for hour, 1 for minute, 1 for second
       buffer.writeUint8(7);
       buffer.writeUint16(year, Endian.little);
       buffer.writeUint8(month);
@@ -258,7 +286,7 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
       buffer.writeUint8(minute);
       buffer.writeUint8(second);
     } else {
-      // 4 bytes: 1 de comprimento, 2 p/ ano, 1 p/ mês, 1 p/ dia
+      // 4 bytes: 1 for length, 2 for year, 1 for month, 1 for day
       buffer.writeUint8(4);
       buffer.writeUint16(year, Endian.little);
       buffer.writeUint8(month);
@@ -266,44 +294,44 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
     }
   }
 
-  /// Escreve um valor do tipo Time (representado como DateTime) no [buffer]
-  /// de acordo com o protocolo MySQL.
+  /// Writes a Time value (represented as DateTime) to the [buffer]
+  /// according to the MySQL protocol.
   ///
-  /// O protocolo binário do MySQL para TIME armazena:
-  /// - 1 byte de "tamanho" (pode ser 0, 8 ou 12).
-  /// - 1 byte de sinal (0=positivo, 1=negativo).
-  /// - 4 bytes p/ "dias".
-  /// - 1 hora, 1 min, 1 seg [=3 bytes].
-  /// - Opcionalmente 4 bytes de microssegundos, se houver.
+  /// The MySQL binary protocol for TIME stores:
+  /// - 1 byte for "length" (can be 0, 8, or 12).
+  /// - 1 byte for sign (0=positive, 1=negative).
+  /// - 4 bytes for "days".
+  /// - 1 hour, 1 minute, 1 second [=3 bytes].
+  /// - Optionally 4 bytes for microseconds, if present.
   ///
-  /// Aqui, interpretamos [time] como um DateTime cujo dia/hora/min/seg representam
-  /// apenas a parte de tempo (ex.: 00:00 até 23:59:59).
+  /// Here, we interpret [time] as a DateTime where day/hour/minute/second represent
+  /// only the time portion (e.g., 00:00 to 23:59:59).
   void _writeTime(ByteDataWriter buffer, DateTime time) {
     final hour = time.hour;
     final minute = time.minute;
     final second = time.second;
     final microsecond = time.microsecond;
 
-    // Se tudo zero, escreve 0 (tempo = 00:00:00).
+    // If all zero, write 0 (time = 00:00:00).
     if (hour == 0 && minute == 0 && second == 0 && microsecond == 0) {
       buffer.writeUint8(0);
       return;
     }
 
     if (microsecond > 0) {
-      // 12 bytes: 1 (len) + 1 (sinal) + 4 (dias=0) + 1 (hora) + 1 (min) + 1 (seg) + 4 (microseg)
+      // 12 bytes: 1 (len) + 1 (sign) + 4 (days=0) + 1 (hour) + 1 (min) + 1 (sec) + 4 (microsec)
       buffer.writeUint8(12);
-      buffer.writeUint8(0); // sinal = 0 (positivo)
-      buffer.writeUint32(0, Endian.little); // dias = 0
+      buffer.writeUint8(0); // sign = 0 (positive)
+      buffer.writeUint32(0, Endian.little); // days = 0
       buffer.writeUint8(hour);
       buffer.writeUint8(minute);
       buffer.writeUint8(second);
       buffer.writeUint32(microsecond, Endian.little);
     } else {
-      // 8 bytes: 1 (len) + 1 (sinal) + 4 (dias=0) + 1 (hora) + 1 (min) + 1 (seg)
+      // 8 bytes: 1 (len) + 1 (sign) + 4 (days=0) + 1 (hour) + 1 (min) + 1 (sec)
       buffer.writeUint8(8);
-      buffer.writeUint8(0); // sinal = 0 (positivo)
-      buffer.writeUint32(0, Endian.little); // dias = 0
+      buffer.writeUint8(0); // sign = 0 (positive)
+      buffer.writeUint32(0, Endian.little); // days = 0
       buffer.writeUint8(hour);
       buffer.writeUint8(minute);
       buffer.writeUint8(second);
@@ -311,31 +339,31 @@ class MySQLPacketCommStmtExecute extends MySQLPacketPayload {
   }
 }
 
-/// Representa o comando COM_QUIT no protocolo MySQL.
+/// Represents the COM_QUIT command in the MySQL protocol.
 ///
-/// Esse comando é utilizado para fechar a conexão com o servidor.
-/// O pacote consiste apenas de um byte de comando (valor 1).
+/// This command is used to close the connection with the server.
+/// The packet consists of only a command byte (value 1).
 class MySQLPacketCommQuit extends MySQLPacketPayload {
   @override
   Uint8List encode() {
     final buffer = ByteDataWriter(endian: Endian.little);
-    // Escreve o comando QUIT (1)
+    // Write the QUIT command (1)
     buffer.writeUint8(1);
     return buffer.toBytes();
   }
 }
 
-/// Representa o comando COM_STMT_CLOSE no protocolo MySQL.
+/// Represents the COM_STMT_CLOSE command in the MySQL protocol.
 ///
-/// Esse comando é utilizado para fechar um prepared statement e liberar
-/// os recursos associados no servidor. O pacote contém:
-/// - Um byte de comando (valor 0x19).
-/// - O ID do statement (stmtID) (4 bytes, little-endian).
+/// This command is used to close a prepared statement and release
+/// associated resources on the server. The packet contains:
+/// - A command byte (value 0x19).
+/// - The statement ID (stmtID) (4 bytes, little-endian).
 class MySQLPacketCommStmtClose extends MySQLPacketPayload {
-  /// ID do statement a ser fechado.
+  /// ID of the statement to be closed.
   final int stmtID;
 
-  /// Construtor da classe.
+  /// Class constructor.
   MySQLPacketCommStmtClose({
     required this.stmtID,
   });
@@ -343,9 +371,9 @@ class MySQLPacketCommStmtClose extends MySQLPacketPayload {
   @override
   Uint8List encode() {
     final buffer = ByteDataWriter(endian: Endian.little);
-    // Escreve o comando COM_STMT_CLOSE (0x19)
+    // Write the COM_STMT_CLOSE command (0x19)
     buffer.writeUint8(0x19);
-    // Escreve o statement ID (4 bytes, little-endian)
+    // Write the statement ID (4 bytes, little-endian)
     buffer.writeUint32(stmtID, Endian.little);
     return buffer.toBytes();
   }
