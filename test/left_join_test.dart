@@ -49,13 +49,12 @@ void main() {
   });
 
   test('Execute: left join', () async {
-    var req1 = await conn!.execute("SELECT data.*, cc.* FROM test_data5 AS data LEFT JOIN test_data5_index AS cc ON cc.col_key = data.col_key ORDER BY data.id DESC");
-    print(req1.rows.first.typedAssoc());
-    expect(req1.rows.length, 1);
+    var req1 = await conn!.execute("SELECT  cc.*,data.* FROM test_data5 AS data LEFT JOIN test_data5_index AS cc ON cc.col_key = data.col_key ORDER BY data.id DESC");
+    expect(req1.rows.first.typedAssoc()['col_key'], equals('test_123'));
   });
 
-  // test('Execute: drop table ', () async {
-  //   await conn!.execute("DROP TABLE IF EXISTS `test_data5`");
-  //   await conn!.execute("DROP TABLE IF EXISTS `test_data5_index`");
-  // });
+  test('Execute: drop table ', () async {
+    await conn!.execute("DROP TABLE IF EXISTS `test_data5`");
+    await conn!.execute("DROP TABLE IF EXISTS `test_data5_index`");
+  });
 }
