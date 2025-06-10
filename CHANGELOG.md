@@ -1,3 +1,7 @@
+## 0.1.1
+
+* feat: Add support for binary queries on TEXT data types
+
 ## 0.1.0
 
 * feat: Add support for binary queries on JSON data types

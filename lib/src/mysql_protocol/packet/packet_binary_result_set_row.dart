@@ -38,7 +38,6 @@ class MySQLBinaryResultSetRowPacket extends MySQLPacketPayload {
     );
 
     offset += nullBitmapSize;
-
     // parse binary data
     for (int x = 0; x < colDefs.length; x++) {
       // check null bitmap first
@@ -56,6 +55,7 @@ class MySQLBinaryResultSetRowPacket extends MySQLPacketPayload {
           byteData,
           buffer,
           offset,
+          colDefs[x].flags,
         );
         offset += parseResult.item2;
         values.add(parseResult.item1);

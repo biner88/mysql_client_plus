@@ -240,45 +240,47 @@ Tuple2<dynamic, int> parseBinaryColumnData(
   ByteData data,
   Uint8List buffer,
   int startOffset,
+  int flags,
 ) {
   switch (columnType) {
-    case mysqlColumnTypeTiny:
+    case mysqlColumnTypeTiny: // 1 byte
       {
         final value = data.getInt8(startOffset);
         return Tuple2(value.toString(), 1);
       }
 
-    case mysqlColumnTypeShort:
+    case mysqlColumnTypeShort: // 2 bytes
       {
         final value = data.getInt16(startOffset, Endian.little);
         return Tuple2(value.toString(), 2);
       }
 
-    case mysqlColumnTypeLong:
-    case mysqlColumnTypeInt24:
+    case mysqlColumnTypeLong: // 4 bytes
+    case mysqlColumnTypeInt24: // also 4 bytes as per MySQL binary protocol
       {
         final value = data.getInt32(startOffset, Endian.little);
         return Tuple2(value.toString(), 4);
       }
 
-    case mysqlColumnTypeLongLong:
+    case mysqlColumnTypeLongLong: // 8 bytes
       {
         final value = data.getInt64(startOffset, Endian.little);
         return Tuple2(value.toString(), 8);
       }
 
-    case mysqlColumnTypeFloat:
+    case mysqlColumnTypeFloat: // 4 bytes
       {
         final value = data.getFloat32(startOffset, Endian.little);
         return Tuple2(value.toString(), 4);
       }
 
-    case mysqlColumnTypeDouble:
+    case mysqlColumnTypeDouble: // 8 bytes
       {
         final value = data.getFloat64(startOffset, Endian.little);
         return Tuple2(value.toString(), 8);
       }
-
+    case mysqlColumnTypeNull:
+      return Tuple2(null, 0);
     case mysqlColumnTypeDate:
     case mysqlColumnTypeDateTime:
     case mysqlColumnTypeTimestamp:
@@ -406,8 +408,14 @@ Tuple2<dynamic, int> parseBinaryColumnData(
     case mysqlColumnTypeGeometry:
     case mysqlColumnTypeBit:
       {
-        final lengthEncoded = buffer.getLengthEncodedBytes(startOffset);
-        return Tuple2(lengthEncoded.item1, lengthEncoded.item2);
+        final isBinary = (flags & 0x80) != 0;
+        if (isBinary) {
+          final lengthEncoded = buffer.getLengthEncodedBytes(startOffset);
+          return Tuple2(lengthEncoded.item1, lengthEncoded.item2);
+        } else {
+          final result = buffer.getUtf8LengthEncodedString(startOffset);
+          return Tuple2(result.item1, result.item2);
+        }
       }
 
     case mysqlColumnTypeYear:

@@ -868,7 +868,6 @@ class MySQLConnection {
     _responseCallback = (data) async {
       try {
         MySQLPacket? packet;
-
         switch (state) {
           case 0:
             packet = MySQLPacket.decodeCommPrepareStmtResponsePacket(data);
@@ -1147,7 +1146,7 @@ class MySQLConnection {
     if (param == null) {
       return MySQLColumnType.nullType;
     } else if (param is int) {
-      // Seleciona o tipo inteiro apropriado com base no valor.
+      // Choose the right way, no courage.
       if (param >= -128 && param <= 127) {
         return MySQLColumnType.tinyType;
       } else if (param >= -32768 && param <= 32767) {
@@ -1160,17 +1159,17 @@ class MySQLConnection {
     } else if (param is double) {
       return MySQLColumnType.doubleType;
     } else if (param is String) {
-      // Poderia haver lógica adicional para diferenciar entre varStringType e stringType
+      // There could be additional logic to differentiate between varStringType and stringType
 
       return MySQLColumnType.varStringType;
     } else if (param is DateTime) {
       return MySQLColumnType.dateTimeType;
     } else if (param is bool) {
-      // Valores booleanos geralmente são representados como TINYINT(1)
+      // Boolean values ​​are usually represented as TINYINT(1)
 
       return MySQLColumnType.tinyType;
     } else if (param is Uint8List) {
-      // Escolhe o tipo BLOB com base no tamanho dos dados
+      // Choose BLOB type based on data size
       final len = param.length;
       if (len <= 255) {
         return MySQLColumnType.tinyBlobType;

@@ -44,12 +44,14 @@ void main() {
   });
 
   test('Execute: insert data ', () async {
-    await conn!.execute("INSERT INTO test_data5 (col_key, name) VALUES ('test_123', 'John Doe')");
+    await conn!.execute(
+        "INSERT INTO test_data5 (col_key, name) VALUES ('test_123', 'John Doe')");
     // await conn!.execute("INSERT INTO test_data5_index (col_key, art_name) VALUES ('test_123', 'Breaking CCK')");
   });
 
   test('Execute: left join', () async {
-    var req1 = await conn!.execute("SELECT  cc.*,data.* FROM test_data5 AS data LEFT JOIN test_data5_index AS cc ON cc.col_key = data.col_key ORDER BY data.id DESC");
+    var req1 = await conn!.execute(
+        "SELECT  cc.*,data.* FROM test_data5 AS data LEFT JOIN test_data5_index AS cc ON cc.col_key = data.col_key ORDER BY data.id DESC");
     expect(req1.rows.first.typedAssoc()['col_key'], equals('test_123'));
   });
 

@@ -33,6 +33,7 @@ void main() {
         date_column DATE,
         time_column TIME,
         year_column YEAR,
+        text_column TEXT,
         json_column JSON
       )
     ''');
@@ -244,6 +245,23 @@ void main() {
     expect(
         (result.rows.first.colByName("json_column") as Map)['age'], equals(30));
     await stmt.deallocate();
+  });
+  test("Inserting a Text value via prepared statement", () async {
+    final stmt =
+        await conn!.prepare('INSERT INTO my_table (text_column) VALUES (?)');
+    final result = await stmt.execute([
+      'a lot of things or people: There\'s quite a collection of toothbrushes in the bathroom.'
+    ]);
+    expect(result.affectedRows.toInt(), equals(1));
+    await stmt.deallocate();
+  });
+  test("Selecting Text data via prepared statement", () async {
+    final stmt = await conn!
+        .prepare('SELECT * from my_table where text_column IS NOT null');
+    final result = await stmt.execute([]);
+    print(result.rows.first.colByName("text_column"));
+    // expect((result.rows.first.colByName("json_column") as Map)['age'], equals(30));
+    // await stmt.deallocate();
   });
 //end
 }
