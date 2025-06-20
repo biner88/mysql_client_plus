@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -68,12 +67,9 @@ void main() {
 
   test('Query placeholders: Using named parameters', () async {
     await connection.execute("DROP TABLE IF EXISTS placeholder_test");
-    await connection
-        .execute("CREATE TABLE placeholder_test (id INT, value VARCHAR(50))");
-    await connection.execute(
-        "INSERT INTO placeholder_test (id, value) VALUES (1, 'test1'), (2, 'test2')");
-    final result = await connection.execute(
-        "SELECT value FROM placeholder_test WHERE id = :id", {"id": 2});
+    await connection.execute("CREATE TABLE placeholder_test (id INT, value VARCHAR(50))");
+    await connection.execute("INSERT INTO placeholder_test (id, value) VALUES (1, 'test1'), (2, 'test2')");
+    final result = await connection.execute("SELECT value FROM placeholder_test WHERE id = :id", {"id": 2});
     expect(result.numOfRows, equals(1));
     final row = result.rows.first;
     expect(row.colByName("value"), equals('test2'));
@@ -82,8 +78,7 @@ void main() {
 
   test('Transactional: Commit the transaction', () async {
     await connection.execute("DROP TABLE IF EXISTS temp_test");
-    await connection.execute(
-        "CREATE TABLE temp_test (id INT AUTO_INCREMENT PRIMARY KEY, value INT)");
+    await connection.execute("CREATE TABLE temp_test (id INT AUTO_INCREMENT PRIMARY KEY, value INT)");
     await connection.execute("INSERT INTO temp_test (value) VALUES (10), (20)");
 
     final updateResult = await connection.transactional((conn) async {
@@ -104,10 +99,8 @@ void main() {
 
   test('Transactional: Rollback of transaction in case of error', () async {
     await connection.execute("DROP TABLE IF EXISTS temp_test_rollback");
-    await connection.execute(
-        "CREATE TABLE temp_test_rollback (id INT AUTO_INCREMENT PRIMARY KEY, value INT) ENGINE=InnoDB;");
-    await connection
-        .execute("INSERT INTO temp_test_rollback (value) VALUES (10), (20)");
+    await connection.execute("CREATE TABLE temp_test_rollback (id INT AUTO_INCREMENT PRIMARY KEY, value INT) ENGINE=InnoDB;");
+    await connection.execute("INSERT INTO temp_test_rollback (value) VALUES (10), (20)");
 
     try {
       await connection.transactional((conn) async {
@@ -121,8 +114,7 @@ void main() {
       // Exceção esperada; o rollback deve ocorrer
     }
 
-    final result =
-        await connection.execute("SELECT value FROM temp_test_rollback");
+    final result = await connection.execute("SELECT value FROM temp_test_rollback");
     final values = result.rows.map((row) => row.colByName("value")).toList();
     expect(values, containsAll(['10', '20']));
     await connection.execute("DROP TABLE IF EXISTS temp_test_rollback");
@@ -130,8 +122,7 @@ void main() {
 
   test('Prepare: Cria, executa e dealloca prepared statement', () async {
     await connection.execute("DROP TABLE IF EXISTS temp_test");
-    await connection.execute(
-        "CREATE TABLE temp_test (id INT AUTO_INCREMENT PRIMARY KEY, value INT)");
+    await connection.execute("CREATE TABLE temp_test (id INT AUTO_INCREMENT PRIMARY KEY, value INT)");
     await connection.execute("INSERT INTO temp_test (value) VALUES (1), (2)");
 
     final stmt = await connection.prepare("UPDATE temp_test SET value = ?");
@@ -201,8 +192,7 @@ void main() {
 
   test('Iterating large result sets', () async {
     await connection.execute("DROP TABLE IF EXISTS large_test");
-    await connection.execute(
-        "CREATE TABLE large_test (id INT AUTO_INCREMENT PRIMARY KEY, value INT)");
+    await connection.execute("CREATE TABLE large_test (id INT AUTO_INCREMENT PRIMARY KEY, value INT)");
     // Insere 100 registros
     for (int i = 0; i < 100; i++) {
       await connection.execute("INSERT INTO large_test (value) VALUES ($i)");
@@ -219,12 +209,9 @@ void main() {
 
   test('Typed data access', () async {
     await connection.execute("DROP TABLE IF EXISTS typed_test");
-    await connection.execute(
-        "CREATE TABLE typed_test (id INT, float_val FLOAT, date_val DATE)");
-    await connection.execute(
-        "INSERT INTO typed_test (id, float_val, date_val) VALUES (1, 3.14, '2020-01-01')");
-    final result = await connection
-        .execute("SELECT id, float_val, date_val FROM typed_test");
+    await connection.execute("CREATE TABLE typed_test (id INT, float_val FLOAT, date_val DATE)");
+    await connection.execute("INSERT INTO typed_test (id, float_val, date_val) VALUES (1, 3.14, '2020-01-01')");
+    final result = await connection.execute("SELECT id, float_val, date_val FROM typed_test");
     final row = result.rows.first;
     expect(int.tryParse(row.colByName("id")!), equals(1));
     expect(double.tryParse(row.colByName("float_val")!), closeTo(3.14, 0.01));
@@ -234,11 +221,9 @@ void main() {
 
   test('Prepared statements: Sending binary data', () async {
     await connection.execute("DROP TABLE IF EXISTS binary_test");
-    await connection.execute(
-        "CREATE TABLE binary_test (id INT AUTO_INCREMENT PRIMARY KEY, data BLOB)");
+    await connection.execute("CREATE TABLE binary_test (id INT AUTO_INCREMENT PRIMARY KEY, data BLOB)");
     final binaryData = Uint8List.fromList([0, 255, 127, 128]);
-    final stmt =
-        await connection.prepare("INSERT INTO binary_test (data) VALUES (?)");
+    final stmt = await connection.prepare("INSERT INTO binary_test (data) VALUES (?)");
     final res = await stmt.execute([binaryData]);
     expect(res.affectedRows.toInt(), equals(1));
     await stmt.deallocate();
@@ -250,8 +235,7 @@ void main() {
   });
 
   test('Multiple result sets', () async {
-    final results =
-        await connection.execute("SELECT 1 AS first; SELECT 2 AS second;");
+    final results = await connection.execute("SELECT 1 AS first; SELECT 2 AS second;");
     // Converte o iterável para uma lista
     final resultList = results.toList();
     expect(resultList.length, equals(2));
@@ -312,8 +296,7 @@ void main() {
         gotServerException = true;
       }
     }
-    expect(gotServerException, isTrue,
-        reason: "Deveria lançar erro de servidor");
+    expect(gotServerException, isTrue, reason: "Deveria lançar erro de servidor");
   });
 
   // test('Tipos YEAR(2) e YEAR(4)', () async {
@@ -348,8 +331,7 @@ void main() {
   ''');
 
     // for example, b'10101010'
-    await connection
-        .execute("INSERT INTO bit_test (flags) VALUES (b'10101010')");
+    await connection.execute("INSERT INTO bit_test (flags) VALUES (b'10101010')");
 
     final res = await connection.execute("SELECT flags FROM bit_test");
     final row = res.rows.first;
@@ -375,8 +357,7 @@ void main() {
   ''');
     // Prepare the same query twice (re-prepare)
     for (int i = 0; i < 2; i++) {
-      final stmt = await connection
-          .prepare("INSERT INTO multi_prepared_test (val) VALUES (?)");
+      final stmt = await connection.prepare("INSERT INTO multi_prepared_test (val) VALUES (?)");
 
       // Runs with different parameters
       for (var v in ['A', 'B', 'C']) {
@@ -386,16 +367,13 @@ void main() {
       await stmt.deallocate();
     }
     // Esperamos 2 (prepare) * 3 (exec) = 6 linhas inseridas
-    final resAll = await connection
-        .execute("SELECT COUNT(*) as total FROM multi_prepared_test");
+    final resAll = await connection.execute("SELECT COUNT(*) as total FROM multi_prepared_test");
     final countRow = resAll.rows.first;
     expect(countRow.colByName("total"), anyOf(['6', '6.0']));
     await connection.execute("DROP TABLE IF EXISTS multi_prepared_test");
   });
 
-  test(
-      'Concurrency: multiple simultaneous queries on the same connection (if supported)',
-      () async {
+  test('Concurrency: multiple simultaneous queries on the same connection (if supported)', () async {
     // This test *may* fail if the driver does not support parallel queries on the same connection.
     // In many drivers, this is not allowed and must be done via "pooling" or separate connections.
     final futures = <Future>[];
@@ -440,8 +418,7 @@ void main() {
       gotError = true;
       print("Connection lost exception: $e");
     }
-    expect(gotError, isTrue,
-        reason: "Should fail because the connection was destroyed");
+    expect(gotError, isTrue, reason: "Should fail because the connection was destroyed");
   });
   test('Using USE to switch databases', () async {
     // Create another database for testing
