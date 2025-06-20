@@ -473,20 +473,8 @@ void main() {
     );
     final res = await connection.execute("SELECT data FROM json_test");
     final row = res.rows.first;
-    final rawVal = row.colByName("data");
-    String jsonStr;
-    if (rawVal is List<int>) {
-      jsonStr = utf8.decode(rawVal);
-    } else {
-      jsonStr = rawVal.toString();
-    }
-
-    // print("Valor JSON: $jsonStr");
-    // Normally MySQL returns JSON as a string
-    expect(jsonStr, contains('"name": "Alice"'));
-    // If you want to parse to map:
-    final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
-    expect(decoded['age'], equals(30));
+    final jsonData = row.colByName("data");
+    expect(jsonData['age'], equals(30));
     await connection.execute("DROP TABLE IF EXISTS json_test");
   });
 }

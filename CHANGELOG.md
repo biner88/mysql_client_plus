@@ -1,3 +1,8 @@
+## 0.1.2
+
+* Fix Support Urdu Arabic select  [#1](https://github.com/biner88/mysql_client_plus/issues/1)
+* Add support queries on JSON data types
+
 ## 0.1.1
 
 * feat: Add support for binary queries on TEXT data types

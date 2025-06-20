@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:mysql_client_plus/mysql_protocol.dart';
 import 'package:mysql_client_plus/mysql_protocol_extension.dart';
@@ -26,16 +27,34 @@ class MySQLResultSetRowPacket extends MySQLPacketPayload {
         values.add(null);
         offset++;
       } else {
-        // Lê o valor como length-encoded bytes
-        final lengthEncoded = buffer.getLengthEncodedBytes(offset);
-        offset += lengthEncoded.item2;
-
         if (_isBinaryType(colDef.type)) {
-          // Se for BLOB/binário, guardamos como bytes; caso contrário, convertemos p/ String
-          values.add(lengthEncoded.item1); // Uint8List
+          final isBinary = (colDef.flags & 0x80) != 0;
+          if (isBinary) {
+            final lengthEncoded = buffer.getLengthEncodedBytes(offset);
+            offset += lengthEncoded.item2;
+            values.add(lengthEncoded.item1);
+          } else {
+            final lengthEncoded = buffer.getUtf8LengthEncodedString(offset);
+            offset += lengthEncoded.item2;
+            values.add(lengthEncoded.item1);
+          }
+        } else if (colDef.type.intVal == MySQLColumnType.bitType.intVal) {
+          final lengthEncoded = buffer.getLengthEncodedBytes(offset);
+          offset += lengthEncoded.item2;
+          values.add(lengthEncoded.item1);
+        } else if (colDef.type.intVal == MySQLColumnType.jsonType.intVal) {
+          final lengthEncoded = buffer.getUtf8LengthEncodedString(offset);
+          offset += lengthEncoded.item2;
+          try {
+            final jsonObject = jsonDecode(lengthEncoded.item1);
+            values.add(jsonObject);
+          } catch (e) {
+            values.add(lengthEncoded.item1);
+          }
         } else {
-          final strValue = String.fromCharCodes(lengthEncoded.item1);
-          values.add(strValue);
+          final lengthEncoded = buffer.getUtf8LengthEncodedString(offset);
+          offset += lengthEncoded.item2;
+          values.add(lengthEncoded.item1);
         }
       }
     }
@@ -53,7 +72,6 @@ class MySQLResultSetRowPacket extends MySQLPacketPayload {
         colType.intVal == MySQLColumnType.mediumBlobType.intVal ||
         colType.intVal == MySQLColumnType.longBlobType.intVal ||
         colType.intVal == MySQLColumnType.blobType.intVal ||
-        colType.intVal == MySQLColumnType.geometryType.intVal ||
-        colType.intVal == MySQLColumnType.bitType.intVal;
+        colType.intVal == MySQLColumnType.geometryType.intVal;
   }
 }
